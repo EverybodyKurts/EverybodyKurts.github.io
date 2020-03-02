@@ -28,8 +28,8 @@ twitter_username: KurtRMueller
 github_username:  EverybodyKurts
 
 # Build settings
-# theme: minima
-remote_theme: broccolini/swiss
+remote_theme: EverybodyKurts/swiss
+show_drafts: false
 plugins:
   - jekyll-feed
   - jekyll-gist
