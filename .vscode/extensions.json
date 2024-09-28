@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+        "rebornix.ruby",
+        "ms-dotnettools.dotnet-interactive-vscode",
+        "shopify.ruby-lsp"
+    ]
+}
