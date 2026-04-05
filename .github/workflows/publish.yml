@@ -14,6 +14,14 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
+      # Validate Jupyter notebooks for Quarto rendering compatibility.
+      # Checks for metadata issues that cause broken code block rendering:
+      # - kernelspec.language must be "fsharp" (not "F#")
+      # - language_info.name must be "fsharp" (not "polyglot-notebook")
+      # - Frontmatter cells must be raw (not code)
+      - name: Validate notebooks
+        run: python scripts/validate-notebooks.py
+
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
