@@ -215,6 +215,85 @@ Option.bind:  None</code></pre>
 </div>
 </div>
 </section>
+<section id="results" class="level2">
+<h2 class="anchored" data-anchor-id="results">Results</h2>
+<p>The <code>result</code> type takes the <code>option</code> idea further: instead of just signalling absence with <code>None</code>, it carries an error value when something goes wrong. A result is either <code>Ok value</code> or <code>Error err</code>, and like <code>option</code>, the type system forces you to handle both cases.</p>
+<p>Chaining fallible operations has the same structural problem as chaining optional ones — each step might fail, and you want to short-circuit on the first error. The <code>result</code> CE from <code>FsToolkit.ErrorHandling</code> handles this cleanly.</p>
+<div id="cell-8" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>//<span class="co"> A small validation pipeline: parse an order from raw input</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> OrderError = InvalidId | NegativeQuantity | UnknownProduct</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Order = <span class="op">{</span> Id: <span class="dt">int</span>; ProductId: <span class="dt">int</span>; Quantity: <span class="dt">int</span> <span class="op">}</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> parseId <span class="op">(</span>raw: <span class="dt">string</span><span class="op">)</span> : Result&lt;<span class="dt">int</span>, OrderError&gt; =</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">match</span> System<span class="kw">.</span>Int32<span class="kw">.</span>TryParse raw <span class="kw">with</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    | <span class="kw">true</span>, n <span class="kw">when</span> n &gt; <span class="dv">0</span> -&gt; Ok n</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    | _ -&gt; Error InvalidId</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> validateQuantity <span class="op">(</span>qty: <span class="dt">int</span><span class="op">)</span> : Result&lt;<span class="dt">int</span>, OrderError&gt; =</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">if</span> qty &gt; <span class="dv">0</span> <span class="kw">then</span> Ok qty <span class="kw">else</span> Error NegativeQuantity</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> lookupProduct <span class="op">(</span>productId: <span class="dt">int</span><span class="op">)</span> : Result&lt;<span class="dt">int</span>, OrderError&gt; =</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">if</span> productId = <span class="dv">42</span> <span class="kw">then</span> Ok productId <span class="kw">else</span> Error UnknownProduct</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>//<span class="co"> --- Before: cascading match expressions ---</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> parseOrderNestedMatch <span class="op">(</span>rawId: <span class="dt">string</span><span class="op">)</span> <span class="op">(</span>qty: <span class="dt">int</span><span class="op">)</span> <span class="op">(</span>productId: <span class="dt">int</span><span class="op">)</span> : Result&lt;Order, OrderError&gt; =</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">match</span> parseId rawId <span class="kw">with</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    | Error e -&gt; Error e</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    | Ok id -&gt;</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>        <span class="kw">match</span> validateQuantity qty <span class="kw">with</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>        | Error e -&gt; Error e</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>        | Ok validQty -&gt;</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>            <span class="kw">match</span> lookupProduct productId <span class="kw">with</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>            | Error e -&gt; Error e</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>            | Ok pid -&gt; Ok <span class="op">{</span> Id = id; ProductId = pid; Quantity = validQty <span class="op">}</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>printfn <span class="st">"Nested match: %A"</span> <span class="op">(</span>parseOrderNestedMatch <span class="st">"7"</span> <span class="dv">3</span> <span class="dv">42</span><span class="op">)</span>   //<span class="co"> Ok ...</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>printfn <span class="st">"Nested match: %A"</span> <span class="op">(</span>parseOrderNestedMatch <span class="st">"7"</span> <span class="dv">-1</span> <span class="dv">42</span><span class="op">)</span>  //<span class="co"> Error NegativeQuantity</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>//<span class="co"> --- Before: Result.bind ---</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>//<span class="co"> Flattens the nesting but requires threading intermediate values manually.</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> parseOrderResultBind <span class="op">(</span>rawId: <span class="dt">string</span><span class="op">)</span> <span class="op">(</span>qty: <span class="dt">int</span><span class="op">)</span> <span class="op">(</span>productId: <span class="dt">int</span><span class="op">)</span> : Result&lt;Order, OrderError&gt; =</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>    parseId rawId</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>    |&gt; Result<span class="kw">.</span>bind <span class="op">(</span><span class="kw">fun</span> id -&gt;</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>        validateQuantity qty</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>        |&gt; Result<span class="kw">.</span>bind <span class="op">(</span><span class="kw">fun</span> validQty -&gt;</span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>            lookupProduct productId</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>            |&gt; Result<span class="kw">.</span>map <span class="op">(</span><span class="kw">fun</span> pid -&gt; <span class="op">{</span> Id = id; ProductId = pid; Quantity = validQty <span class="op">})))</span></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>printfn <span class="st">"Result.bind:  %A"</span> <span class="op">(</span>parseOrderResultBind <span class="st">"7"</span> <span class="dv">3</span> <span class="dv">42</span><span class="op">)</span>   //<span class="co"> Ok ...</span></span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>printfn <span class="st">"Result.bind:  %A"</span> <span class="op">(</span>parseOrderResultBind <span class="st">"abc"</span> <span class="dv">3</span> <span class="dv">42</span><span class="op">)</span> //<span class="co"> Error InvalidId</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="cell-9" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>//<span class="co"> --- With the result computation expression (FsToolkit.ErrorHandling) ---</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>//<span class="co"> `let!` unwraps Ok, or short-circuits with the Error value.</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>//<span class="co"> All intermediate values stay in scope — no manual threading.</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> parseOrderCE <span class="op">(</span>rawId: <span class="dt">string</span><span class="op">)</span> <span class="op">(</span>qty: <span class="dt">int</span><span class="op">)</span> <span class="op">(</span>productId: <span class="dt">int</span><span class="op">)</span> : Result&lt;Order, OrderError&gt; =</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    result <span class="op">{</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span>! id       = parseId rawId</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span>! validQty = validateQuantity qty</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span>! pid      = lookupProduct productId</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>        <span class="kw">return</span> <span class="op">{</span> Id = id; ProductId = pid; Quantity = validQty <span class="op">}</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>printfn <span class="st">"result CE: %A"</span> <span class="op">(</span>parseOrderCE <span class="st">"7"</span> <span class="dv">3</span> <span class="dv">42</span><span class="op">)</span>    //<span class="co"> Ok { Id = 7; ProductId = 42; Quantity = 3 }</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>printfn <span class="st">"result CE: %A"</span> <span class="op">(</span>parseOrderCE <span class="st">"abc"</span> <span class="dv">3</span> <span class="dv">42</span><span class="op">)</span>  //<span class="co"> Error InvalidId</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>printfn <span class="st">"result CE: %A"</span> <span class="op">(</span>parseOrderCE <span class="st">"7"</span> <span class="dv">3</span> <span class="dv">99</span><span class="op">)</span>    //<span class="co"> Error UnknownProduct</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The <code>Result.bind</code> version avoids the rightward drift of nested matches, but notice that threading <code>id</code> and <code>validQty</code> into the final <code>Result.map</code> requires nesting the lambdas anyway — you can’t easily keep all the bound values in scope when chaining with <code>|&gt;</code>. The <code>result { }</code> CE solves both problems at once: it’s flat, and every <code>let!</code> binding is naturally in scope for the rest of the block.</p>
+</section>
+<section id="query-expressions" class="level2">
+<h2 class="anchored" data-anchor-id="query-expressions">Query Expressions</h2>
+<p>Computation expressions aren’t limited to error handling. F# also has a built-in <code>query { }</code> CE that brings LINQ-style querying directly into the language — no extension methods, no lambda-heavy syntax.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> highValueOrders =</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    query <span class="op">{</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>        <span class="kw">for</span> order <span class="kw">in</span> orders <span class="kw">do</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>        where <span class="op">(</span>order.Total &gt; <span class="fl">100.0</span><span class="op">)</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>        sortByDescending order.Total</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>        select order</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This is not special syntax baked into the compiler — <code>query</code> is just another computation expression builder, defined in the standard library. <code>for</code>, <code>where</code>, <code>sortByDescending</code>, and <code>select</code> are all methods on the builder that the compiler desugars into <code>IQueryable</code>-compatible calls. The same mechanism that powers <code>option { }</code> and <code>result { }</code> powers SQL-translatable database queries.</p>
+<p>That’s the deeper point: computation expressions are a general-purpose abstraction. Once you understand the pattern — a builder type with <code>Bind</code>, <code>Return</code>, and friends — you can read (and write) any CE in the ecosystem, whether it’s for async workflows, error handling, query composition, or something domain-specific you’ve built yourself.</p>
+</section>
 </section>
 
 </main>
