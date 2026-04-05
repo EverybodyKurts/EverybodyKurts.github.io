@@ -10,7 +10,7 @@ Create a new F# notebook blog post under `posts/` with correct Quarto-compatible
 
 - **Always use AskUserQuestion tool** when asking the user anything
 - **Never use `F#` as a language identifier** — Pandoc doesn't recognize it; always use `fsharp`
-- **Frontmatter must be a raw cell** — Not a code cell
+- **No raw frontmatter cell in the notebook** — VS Code's Polyglot Notebooks extension converts raw cells to code cells on open, breaking Quarto rendering. Use `_quarto.yml` + an h1 cell instead (see below).
 
 ## Process
 
@@ -28,25 +28,33 @@ What's the blog post about? I'll need:
 Or just describe the topic and I'll suggest these.
 ```
 
-### Step 2: Generate the Notebook
+### Step 2: Create `_quarto.yml` for the post
 
-Create the file at `posts/{slug}/index.ipynb` with this exact structure:
+Create `posts/{slug}/_quarto.yml` with the post metadata:
+
+```yaml
+title: "{title}"
+description: "{description}"
+author: "Kurt Mueller"
+date: "{YYYY-MM-DD}"
+categories:
+  - fsharp
+```
+
+Quarto merges this into the document at render time, so no frontmatter cell is needed in the notebook.
+
+### Step 3: Generate the Notebook
+
+Create `posts/{slug}/index.ipynb` with this exact structure:
 
 ```json
 {
  "cells": [
   {
-   "cell_type": "raw",
+   "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "---\n",
-    "title: \"{title}\"\n",
-    "description: \"{description}\"\n",
-    "author: \"Kurt Mueller\"\n",
-    "date: \"{YYYY-MM-DD}\"\n",
-    "categories:\n",
-    "  - fsharp\n",
-    "---"
+    "# {title}"
    ]
   },
   {
@@ -99,33 +107,35 @@ Create the file at `posts/{slug}/index.ipynb` with this exact structure:
 }
 ```
 
+**Why the `# {title}` h1 cell?** Quarto extracts the document title from the first level-1 heading when there is no raw frontmatter cell. All other metadata (description, author, date, categories) comes from `_quarto.yml`.
+
 ### Critical Metadata Rules
 
 These rules prevent known rendering failures with Quarto + Pandoc:
 
 | Field | Correct | Wrong (breaks rendering) |
 |---|---|---|
-| Frontmatter cell type | `"cell_type": "raw"` | `"cell_type": "code"` |
 | `kernelspec.language` | `"fsharp"` | `"F#"` |
 | `language_info.name` | `"fsharp"` | `"polyglot-notebook"` |
+| Title source | `# h1` markdown cell | raw frontmatter cell (VS Code mangles it) |
 
-**Why:** Pandoc doesn't recognize `f#` as a language class — the `#` corrupts fenced code block syntax, causing code to render as inline text. Using `"polyglot-notebook"` has the same effect. The frontmatter cell must be `raw` so Quarto treats it as metadata, not executable code.
+**Why:** Pandoc doesn't recognize `f#` as a language class — the `#` corrupts fenced code block syntax, causing code to render as inline text. Using `"polyglot-notebook"` has the same effect.
 
-### Step 3: Confirm
+### Step 4: Confirm
 
 ```
-Created posts/{slug}/index.ipynb
+Created:
+  posts/{slug}/_quarto.yml   ← post metadata
+  posts/{slug}/index.ipynb   ← notebook (h1 title cell + starter cells)
 
-Open it in VS Code or Jupyter to start writing. The notebook has:
-- ✅ Raw frontmatter cell (won't render as code block)
-- ✅ fsharp language identifiers (proper syntax highlighting)
-- ✅ Starter markdown + code cells
+Open it in VS Code or Jupyter to start writing. The notebook is safe to edit
+without any metadata getting mangled.
 
 To preview: quarto preview posts/{slug}/index.ipynb
 ```
 
 ## Tips
 
-- **Add categories** in the frontmatter YAML to organize posts on the blog index
-- **Use `execute: freeze: auto`** in `_quarto.yml` (already configured) so notebooks don't need to be re-executed during CI
+- **Add categories** in `_quarto.yml` to organize posts on the blog index
+- **Use `execute: freeze: auto`** in the root `_quarto.yml` (already configured) so notebooks don't need to be re-executed during CI
 - After writing, run `/validate-notebooks` to catch any issues before publishing
