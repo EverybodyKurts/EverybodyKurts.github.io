@@ -10,7 +10,7 @@
 <atom:link href="https://everybodykurts.github.io/index.xml" rel="self" type="application/rss+xml"/>
 <description>A blog about F# and functional programming</description>
 <generator>quarto-1.9.36</generator>
-<lastBuildDate>Sun, 05 Apr 2026 20:44:29 GMT</lastBuildDate>
+<lastBuildDate>Sun, 05 Apr 2026 20:45:29 GMT</lastBuildDate>
 <item>
   <title>Welcome</title>
   <link>https://everybodykurts.github.io/posts/hello-fsharp/</link>
@@ -19,7 +19,7 @@
 
 
 
-<div id="cell-1" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;polyglot_notebook&quot;,&quot;value&quot;:{&quot;kernelName&quot;:&quot;fsharp&quot;}}" data-execution_count="1">
+<div id="458a5770" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;polyglot_notebook&quot;,&quot;value&quot;:{&quot;kernelName&quot;:&quot;fsharp&quot;}}" data-execution_count="1">
 <table class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
@@ -64,7 +64,7 @@ This is a sample blog post written as a Jupyter notebook using the F# kernel.
 Let's start with a simple example.
 
 
-::: {#cell-3 .cell quarto-private-1='{"key":"dotnet_interactive","value":{"language":"fsharp"}}' execution_count=2}
+::: {#4e2f2762 .cell quarto-private-1='{"key":"dotnet_interactive","value":{"language":"fsharp"}}' execution_count=2}
 ``` {.f# .cell-code}
 let greeting = "Hello from F#!"
 printfn "%s" greeting</code></pre>
@@ -74,7 +74,7 @@ printfn "%s" greeting</code></pre>
 </div>
 <p>F# is a functional-first language that runs on .NET. It’s great for data exploration, scripting, and building robust applications.</p>
 <p>Here’s a quick example of pattern matching:</p>
-<div id="cell-5" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}" data-execution_count="4">
+<div id="af4581b3" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}" data-execution_count="4">
 <p>``` {.f# .cell-code} type Shape = | Circle of radius: float | Rectangle of width: float * height: float</p>
 <p>let area shape = match shape with | Circle radius -&gt; System.Math.PI * radius * radius | Rectangle (width, height) -&gt; width * height</p>
 <p>let shapes = [ Circle 5.0; Rectangle (3.0, 4.0) ]</p>
@@ -89,7 +89,7 @@ printfn "%s" greeting</code></pre>
 
  ]]></description>
   <guid>https://everybodykurts.github.io/posts/hello-fsharp/</guid>
-  <pubDate>Sun, 05 Apr 2026 20:44:29 GMT</pubDate>
+  <pubDate>Sun, 05 Apr 2026 20:45:29 GMT</pubDate>
 </item>
 </channel>
 </rss>
