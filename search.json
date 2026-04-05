@@ -1,0 +1,233 @@
+[
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "Welcome to my blog. I write about F# and functional programming."
+  },
+  {
+    "objectID": "agent-os/product/roadmap.html",
+    "href": "agent-os/product/roadmap.html",
+    "title": "Product Roadmap",
+    "section": "",
+    "text": "Quarto blog scaffolding with _quarto.yml configuration\nGitHub Actions workflow for publishing to GitHub Pages\nLocal F# notebook authoring setup (dotnet-interactive + Jupyter)\nfreeze: true configuration for pre-computed outputs\nAt least one sample blog post as a .ipynb notebook\n\n\n\n\n\nCustom theme and styling\nRSS feed configuration\nMulti-language notebook support (F# and Python in the same blog)"
+  },
+  {
+    "objectID": "agent-os/product/roadmap.html#phase-1-mvp",
+    "href": "agent-os/product/roadmap.html#phase-1-mvp",
+    "title": "Product Roadmap",
+    "section": "",
+    "text": "Quarto blog scaffolding with _quarto.yml configuration\nGitHub Actions workflow for publishing to GitHub Pages\nLocal F# notebook authoring setup (dotnet-interactive + Jupyter)\nfreeze: true configuration for pre-computed outputs\nAt least one sample blog post as a .ipynb notebook"
+  },
+  {
+    "objectID": "agent-os/product/roadmap.html#phase-2-post-launch",
+    "href": "agent-os/product/roadmap.html#phase-2-post-launch",
+    "title": "Product Roadmap",
+    "section": "",
+    "text": "Custom theme and styling\nRSS feed configuration\nMulti-language notebook support (F# and Python in the same blog)"
+  },
+  {
+    "objectID": "agent-os/product/mission.html",
+    "href": "agent-os/product/mission.html",
+    "title": "Product Mission",
+    "section": "",
+    "text": "Creating a blog on GitHub Pages powered by Jupyter notebooks with F# language support. The F# notebook ecosystem is fragile: dotnet-interactive is deprecated (though still functional), Verso is too immature to rely on, and IfSharp is abandoned. A reliable authoring and publishing workflow is needed despite this tooling instability.\n\n\n\nPersonal technical blog for sharing ideas, experiments, and writing about F# and functional programming.\n\n\n\nThe “freeze” strategy: decouple F# execution from CI/CD publishing. Author notebooks locally using dotnet-interactive’s .net-fsharp Jupyter kernel, execute all cells before committing, and publish through Quarto with freeze: true so GitHub Actions never needs the F# kernel. This isolates the fragile dependency (F# notebook runtime) to the local authoring environment while keeping the publishing pipeline stable and kernel-agnostic."
+  },
+  {
+    "objectID": "agent-os/product/mission.html#problem",
+    "href": "agent-os/product/mission.html#problem",
+    "title": "Product Mission",
+    "section": "",
+    "text": "Creating a blog on GitHub Pages powered by Jupyter notebooks with F# language support. The F# notebook ecosystem is fragile: dotnet-interactive is deprecated (though still functional), Verso is too immature to rely on, and IfSharp is abandoned. A reliable authoring and publishing workflow is needed despite this tooling instability."
+  },
+  {
+    "objectID": "agent-os/product/mission.html#target-users",
+    "href": "agent-os/product/mission.html#target-users",
+    "title": "Product Mission",
+    "section": "",
+    "text": "Personal technical blog for sharing ideas, experiments, and writing about F# and functional programming."
+  },
+  {
+    "objectID": "agent-os/product/mission.html#solution",
+    "href": "agent-os/product/mission.html#solution",
+    "title": "Product Mission",
+    "section": "",
+    "text": "The “freeze” strategy: decouple F# execution from CI/CD publishing. Author notebooks locally using dotnet-interactive’s .net-fsharp Jupyter kernel, execute all cells before committing, and publish through Quarto with freeze: true so GitHub Actions never needs the F# kernel. This isolates the fragile dependency (F# notebook runtime) to the local authoring environment while keeping the publishing pipeline stable and kernel-agnostic."
+  },
+  {
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/references.html",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/references.html",
+    "title": "References for Install Quarto Blog",
+    "section": "",
+    "text": "URL: https://quarto.org/docs/websites/website-blog.html\nRelevance: Canonical guide for blog project structure, listing pages, and post metadata\n\n\n\n\n\nURL: https://quarto.org/docs/publishing/github-pages.html\nRelevance: GitHub Actions workflow setup, gh-pages branch configuration, freeze strategy\n\n\n\n\n\nURL: https://github.com/quarto-dev/quarto-actions\nRelevance: Official GitHub Actions for setup and publish steps\n\n\n\n\n\nNo existing code references in this codebase — fresh start."
+  },
+  {
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/references.html#quarto-documentation",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/references.html#quarto-documentation",
+    "title": "References for Install Quarto Blog",
+    "section": "",
+    "text": "URL: https://quarto.org/docs/websites/website-blog.html\nRelevance: Canonical guide for blog project structure, listing pages, and post metadata\n\n\n\n\n\nURL: https://quarto.org/docs/publishing/github-pages.html\nRelevance: GitHub Actions workflow setup, gh-pages branch configuration, freeze strategy\n\n\n\n\n\nURL: https://github.com/quarto-dev/quarto-actions\nRelevance: Official GitHub Actions for setup and publish steps"
+  },
+  {
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/references.html#similar-implementations",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/references.html#similar-implementations",
+    "title": "References for Install Quarto Blog",
+    "section": "",
+    "text": "No existing code references in this codebase — fresh start."
+  },
+  {
+    "objectID": "posts/hello-fsharp/index.html",
+    "href": "posts/hello-fsharp/index.html",
+    "title": "Welcome",
+    "section": "",
+    "text": "``` {.f# .cell-code}\n\n\n\n\ntitle: “Hello, F# World”\n\n\ndescription: “My first blog post using F# and Jupyter notebooks”\n\n\nauthor: “Kurt Mueller”\n\n\ndate: “2026-03-29”\n\n\ncategories:\n\n\n- fsharp\n\n\n- getting-started\n\n\n\n\n::: {.cell-output .cell-output-error}\nError: input.fsx (2,1)-(2,6) parse error Invalid prefix operator input.fsx (2,6)-(2,7) parse error Unexpected symbol ‘:’ in interaction. Expected ‘;’, ‘;;’ or other token. input.fsx (2,6)-(2,7) interactive error parse error input.fsx (2,1)-(2,6) parse error Invalid prefix operator\ninput.fsx (2,6)-(2,7) parse error Unexpected symbol ‘:’ in interaction. Expected ‘;’, ‘;;’ or other token.\ninput.fsx (2,6)-(2,7) interactive error parse error\n:::\n:::\n\n\n\nThis is a sample blog post written as a Jupyter notebook using the F# kernel.\nLet's start with a simple example.\n\n\n::: {#cell-3 .cell quarto-private-1='{\"key\":\"dotnet_interactive\",\"value\":{\"language\":\"fsharp\"}}' execution_count=2}\n``` {.f# .cell-code}\nlet greeting = \"Hello from F#!\"\nprintfn \"%s\" greeting\n\nHello from F#!\n\n\nF# is a functional-first language that runs on .NET. It’s great for data exploration, scripting, and building robust applications.\nHere’s a quick example of pattern matching:\n\n``` {.f# .cell-code} type Shape = | Circle of radius: float | Rectangle of width: float * height: float\nlet area shape = match shape with | Circle radius -&gt; System.Math.PI * radius * radius | Rectangle (width, height) -&gt; width * height\nlet shapes = [ Circle 5.0; Rectangle (3.0, 4.0) ]\nshapes |&gt; List.iter (fun s -&gt; printfn “%A has area %.2f” s (area s))\n\n::: {.cell-output .cell-output-stdout}\nCircle 5.0 has area 78.54 Rectangle (3.0, 4.0) has area 12.00 ```\n\n:::"
+  },
+  {
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html",
+    "title": "Install Quarto Blog — Shaping Notes",
+    "section": "",
+    "text": "Install Quarto and configure it as a blog for GitHub Pages, fulfilling the Phase 1 MVP from the product roadmap. Includes blog scaffolding, GitHub Actions CI/CD, freeze configuration, and a sample F# notebook post.\n\n\n\n\nFreeze strategy: freeze: auto at project level, freeze: true at posts level. Posts never re-execute in CI — only locally when the author explicitly renders them.\nPublishing target: gh-pages branch via quarto-dev/quarto-actions/publish@v2. Source files stay on main.\nTheme: Default Quarto cosmo theme. Custom styling deferred to Phase 2.\nNo CI kernel dependency: GitHub Actions workflow has zero .NET/F# setup — all computation results are pre-committed in _freeze/.\nNotebook format: Standard .ipynb with cell_type: \"raw\" for YAML front matter (first cell).\n\n\n\n\n\nVisuals: None — default Quarto blog styling for now.\nReferences: Fresh start, no existing site config in the repo.\nProduct alignment: Directly implements Phase 1 MVP from agent-os/product/roadmap.md.\nStandards applied: None (standards index is empty)."
+  },
+  {
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html#scope",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html#scope",
+    "title": "Install Quarto Blog — Shaping Notes",
+    "section": "",
+    "text": "Install Quarto and configure it as a blog for GitHub Pages, fulfilling the Phase 1 MVP from the product roadmap. Includes blog scaffolding, GitHub Actions CI/CD, freeze configuration, and a sample F# notebook post."
+  },
+  {
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html#decisions",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html#decisions",
+    "title": "Install Quarto Blog — Shaping Notes",
+    "section": "",
+    "text": "Freeze strategy: freeze: auto at project level, freeze: true at posts level. Posts never re-execute in CI — only locally when the author explicitly renders them.\nPublishing target: gh-pages branch via quarto-dev/quarto-actions/publish@v2. Source files stay on main.\nTheme: Default Quarto cosmo theme. Custom styling deferred to Phase 2.\nNo CI kernel dependency: GitHub Actions workflow has zero .NET/F# setup — all computation results are pre-committed in _freeze/.\nNotebook format: Standard .ipynb with cell_type: \"raw\" for YAML front matter (first cell)."
+  },
+  {
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html#context",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html#context",
+    "title": "Install Quarto Blog — Shaping Notes",
+    "section": "",
+    "text": "Visuals: None — default Quarto blog styling for now.\nReferences: Fresh start, no existing site config in the repo.\nProduct alignment: Directly implements Phase 1 MVP from agent-os/product/roadmap.md.\nStandards applied: None (standards index is empty)."
+  },
+  {
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/plan.html",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/plan.html",
+    "title": "Plan: Install Quarto and Configure Blog MVP",
+    "section": "",
+    "text": "Setting up a Quarto-powered blog on GitHub Pages with F# Jupyter notebook support. This is the Phase 1 MVP from the product roadmap. The key architectural insight is the “freeze” strategy: author notebooks locally with the .net-fsharp kernel, execute all cells, commit the _freeze/ directory, and let CI render HTML without ever needing the F# kernel.\nThe repo is a fresh start — no existing site config, workflows, or blog files.\n\n\n\n\nCreate agent-os/specs/2026-03-29-install-quarto-blog/ with:\n\nplan.md — This full plan\nshape.md — Shaping notes (scope, decisions, context)\nreferences.md — Quarto docs references\n\n\n\n\nCreate these files in the repo root:\n_quarto.yml\nproject:\n  type: website\n\nwebsite:\n  title: \"Kurt Mueller\"\n  site-url: https://everybodykurts.github.io\n  description: \"A blog about F# and functional programming\"\n  navbar:\n    right:\n      - about.qmd\n      - icon: github\n        href: https://github.com/everybodykurts\n      - icon: rss\n        href: index.xml\n\nformat:\n  html:\n    theme: cosmo\n    css: styles.css\n\nexecute:\n  freeze: auto\nindex.qmd\n---\ntitle: \"Kurt Mueller\"\nlisting:\n  contents: posts\n  sort: \"date desc\"\n  type: default\n  categories: true\n  feed: true\n---\nabout.qmd\n---\ntitle: \"About\"\n---\n\nWelcome to my blog. I write about F# and functional programming.\nstyles.css — Empty placeholder for custom styles.\n.nojekyll — Empty file to skip Jekyll processing on GitHub Pages.\nposts/_metadata.yml\n# Options shared across all posts\nfreeze: true\nNote: freeze: true (not auto) at posts level means posts are NEVER re-executed unless you explicitly render that specific post. The project-level freeze: auto applies to non-post content.\n\n\n\nAdd these entries:\n/.quarto/\n/_site/\nDo NOT ignore _freeze/ — it must be committed for the freeze strategy to work in CI.\n\n\n\n.github/workflows/publish.yml\non:\n  workflow_dispatch:\n  push:\n    branches: main\n\nname: Quarto Publish\n\njobs:\n  build-deploy:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: write\n    steps:\n      - name: Check out repository\n        uses: actions/checkout@v4\n\n      - name: Set up Quarto\n        uses: quarto-dev/quarto-actions/setup@v2\n\n      - name: Render and Publish\n        uses: quarto-dev/quarto-actions/publish@v2\n        with:\n          target: gh-pages\n        env:\n          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}\nNo Python, R, or .NET setup needed — freeze means all computation results are already committed.\n\n\n\nposts/hello-fsharp/index.ipynb\nA Jupyter notebook with: - Cell 1: Raw cell with YAML front matter (title, description, author, date, categories) - Cell 2: Markdown cell with introduction - Cell 3: F# code cell with a simple example - Kernel metadata: .net-fsharp\nThe .ipynb JSON must have \"cell_type\": \"raw\" for the front matter cell (not markdown).\n\n\n\nAfter implementation, the user needs to:\n\nInstall prerequisites locally:\n# Install Quarto from https://quarto.org/docs/get-started/\nbrew install --cask quarto\n\n# Install dotnet-interactive and register the F# kernel\ndotnet tool install -g Microsoft.dotnet-interactive\ndotnet interactive jupyter install\n# Verify: jupyter kernelspec list should show .net-fsharp\nRender locally:\nquarto render\nThis executes notebook cells and creates _freeze/ and _site/.\nPreview locally:\nquarto preview\nInitial publish (creates gh-pages branch and _publish.yml):\nquarto publish gh-pages\nCommit the generated _publish.yml to the repo.\nConfigure GitHub repo settings:\n\nSettings &gt; Pages &gt; Source: “Deploy from a branch”\nBranch: gh-pages / / (root)\nSettings &gt; Actions &gt; General &gt; Workflow permissions: “Read and write permissions”\n\nCommit and push all files including _freeze/ directory.\n\n\n\n\n\n\n_quarto.yml — Project config with freeze strategy\nindex.qmd — Blog listing page\nposts/_metadata.yml — Per-post freeze override\n.github/workflows/publish.yml — CI/CD pipeline\nposts/hello-fsharp/index.ipynb — Sample F# notebook post\n.gitignore — Exclude build artifacts, keep _freeze/\n\n\n\n\n\nRun quarto render locally — should produce _site/ with rendered blog\nRun quarto preview — should open browser with working blog\nVerify _freeze/posts/hello-fsharp/ exists after render\nPush to main — GitHub Actions should deploy to gh-pages\nVisit https://everybodykurts.github.io — blog should be live"
+  },
+  {
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/plan.html#context",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/plan.html#context",
+    "title": "Plan: Install Quarto and Configure Blog MVP",
+    "section": "",
+    "text": "Setting up a Quarto-powered blog on GitHub Pages with F# Jupyter notebook support. This is the Phase 1 MVP from the product roadmap. The key architectural insight is the “freeze” strategy: author notebooks locally with the .net-fsharp kernel, execute all cells, commit the _freeze/ directory, and let CI render HTML without ever needing the F# kernel.\nThe repo is a fresh start — no existing site config, workflows, or blog files."
+  },
+  {
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/plan.html#task-1-save-spec-documentation",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/plan.html#task-1-save-spec-documentation",
+    "title": "Plan: Install Quarto and Configure Blog MVP",
+    "section": "",
+    "text": "Create agent-os/specs/2026-03-29-install-quarto-blog/ with:\n\nplan.md — This full plan\nshape.md — Shaping notes (scope, decisions, context)\nreferences.md — Quarto docs references"
+  },
+  {
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/plan.html#task-2-create-quarto-blog-scaffolding",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/plan.html#task-2-create-quarto-blog-scaffolding",
+    "title": "Plan: Install Quarto and Configure Blog MVP",
+    "section": "",
+    "text": "Create these files in the repo root:\n_quarto.yml\nproject:\n  type: website\n\nwebsite:\n  title: \"Kurt Mueller\"\n  site-url: https://everybodykurts.github.io\n  description: \"A blog about F# and functional programming\"\n  navbar:\n    right:\n      - about.qmd\n      - icon: github\n        href: https://github.com/everybodykurts\n      - icon: rss\n        href: index.xml\n\nformat:\n  html:\n    theme: cosmo\n    css: styles.css\n\nexecute:\n  freeze: auto\nindex.qmd\n---\ntitle: \"Kurt Mueller\"\nlisting:\n  contents: posts\n  sort: \"date desc\"\n  type: default\n  categories: true\n  feed: true\n---\nabout.qmd\n---\ntitle: \"About\"\n---\n\nWelcome to my blog. I write about F# and functional programming.\nstyles.css — Empty placeholder for custom styles.\n.nojekyll — Empty file to skip Jekyll processing on GitHub Pages.\nposts/_metadata.yml\n# Options shared across all posts\nfreeze: true\nNote: freeze: true (not auto) at posts level means posts are NEVER re-executed unless you explicitly render that specific post. The project-level freeze: auto applies to non-post content."
+  },
+  {
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/plan.html#task-3-update-.gitignore",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/plan.html#task-3-update-.gitignore",
+    "title": "Plan: Install Quarto and Configure Blog MVP",
+    "section": "",
+    "text": "Add these entries:\n/.quarto/\n/_site/\nDo NOT ignore _freeze/ — it must be committed for the freeze strategy to work in CI."
+  },
+  {
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/plan.html#task-4-create-github-actions-workflow",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/plan.html#task-4-create-github-actions-workflow",
+    "title": "Plan: Install Quarto and Configure Blog MVP",
+    "section": "",
+    "text": ".github/workflows/publish.yml\non:\n  workflow_dispatch:\n  push:\n    branches: main\n\nname: Quarto Publish\n\njobs:\n  build-deploy:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: write\n    steps:\n      - name: Check out repository\n        uses: actions/checkout@v4\n\n      - name: Set up Quarto\n        uses: quarto-dev/quarto-actions/setup@v2\n\n      - name: Render and Publish\n        uses: quarto-dev/quarto-actions/publish@v2\n        with:\n          target: gh-pages\n        env:\n          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}\nNo Python, R, or .NET setup needed — freeze means all computation results are already committed."
+  },
+  {
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/plan.html#task-5-create-sample-f-blog-post",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/plan.html#task-5-create-sample-f-blog-post",
+    "title": "Plan: Install Quarto and Configure Blog MVP",
+    "section": "",
+    "text": "posts/hello-fsharp/index.ipynb\nA Jupyter notebook with: - Cell 1: Raw cell with YAML front matter (title, description, author, date, categories) - Cell 2: Markdown cell with introduction - Cell 3: F# code cell with a simple example - Kernel metadata: .net-fsharp\nThe .ipynb JSON must have \"cell_type\": \"raw\" for the front matter cell (not markdown)."
+  },
+  {
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/plan.html#task-6-local-render-and-freeze-manual-steps",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/plan.html#task-6-local-render-and-freeze-manual-steps",
+    "title": "Plan: Install Quarto and Configure Blog MVP",
+    "section": "",
+    "text": "After implementation, the user needs to:\n\nInstall prerequisites locally:\n# Install Quarto from https://quarto.org/docs/get-started/\nbrew install --cask quarto\n\n# Install dotnet-interactive and register the F# kernel\ndotnet tool install -g Microsoft.dotnet-interactive\ndotnet interactive jupyter install\n# Verify: jupyter kernelspec list should show .net-fsharp\nRender locally:\nquarto render\nThis executes notebook cells and creates _freeze/ and _site/.\nPreview locally:\nquarto preview\nInitial publish (creates gh-pages branch and _publish.yml):\nquarto publish gh-pages\nCommit the generated _publish.yml to the repo.\nConfigure GitHub repo settings:\n\nSettings &gt; Pages &gt; Source: “Deploy from a branch”\nBranch: gh-pages / / (root)\nSettings &gt; Actions &gt; General &gt; Workflow permissions: “Read and write permissions”\n\nCommit and push all files including _freeze/ directory."
+  },
+  {
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/plan.html#critical-files",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/plan.html#critical-files",
+    "title": "Plan: Install Quarto and Configure Blog MVP",
+    "section": "",
+    "text": "_quarto.yml — Project config with freeze strategy\nindex.qmd — Blog listing page\nposts/_metadata.yml — Per-post freeze override\n.github/workflows/publish.yml — CI/CD pipeline\nposts/hello-fsharp/index.ipynb — Sample F# notebook post\n.gitignore — Exclude build artifacts, keep _freeze/"
+  },
+  {
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/plan.html#verification",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/plan.html#verification",
+    "title": "Plan: Install Quarto and Configure Blog MVP",
+    "section": "",
+    "text": "Run quarto render locally — should produce _site/ with rendered blog\nRun quarto preview — should open browser with working blog\nVerify _freeze/posts/hello-fsharp/ exists after render\nPush to main — GitHub Actions should deploy to gh-pages\nVisit https://everybodykurts.github.io — blog should be live"
+  },
+  {
+    "objectID": "agent-os/product/tech-stack.html",
+    "href": "agent-os/product/tech-stack.html",
+    "title": "Tech Stack",
+    "section": "",
+    "text": "Quarto - Multi-language publishing system for rendering notebooks to HTML\n\n\n\n\n\nJupyter - Notebook authoring environment\ndotnet-interactive - Provides the .net-fsharp Jupyter kernel for F# execution\n\n\n\n\n\nF# - Primary notebook language\nPython - Secondary notebook language (planned)\n\n\n\n\n\nGitHub Actions - Automated build and deploy pipeline\n\n\n\n\n\nGitHub Pages - Static site hosting"
+  },
+  {
+    "objectID": "agent-os/product/tech-stack.html#publishing",
+    "href": "agent-os/product/tech-stack.html#publishing",
+    "title": "Tech Stack",
+    "section": "",
+    "text": "Quarto - Multi-language publishing system for rendering notebooks to HTML"
+  },
+  {
+    "objectID": "agent-os/product/tech-stack.html#notebooks",
+    "href": "agent-os/product/tech-stack.html#notebooks",
+    "title": "Tech Stack",
+    "section": "",
+    "text": "Jupyter - Notebook authoring environment\ndotnet-interactive - Provides the .net-fsharp Jupyter kernel for F# execution"
+  },
+  {
+    "objectID": "agent-os/product/tech-stack.html#languages",
+    "href": "agent-os/product/tech-stack.html#languages",
+    "title": "Tech Stack",
+    "section": "",
+    "text": "F# - Primary notebook language\nPython - Secondary notebook language (planned)"
+  },
+  {
+    "objectID": "agent-os/product/tech-stack.html#cicd",
+    "href": "agent-os/product/tech-stack.html#cicd",
+    "title": "Tech Stack",
+    "section": "",
+    "text": "GitHub Actions - Automated build and deploy pipeline"
+  },
+  {
+    "objectID": "agent-os/product/tech-stack.html#hosting",
+    "href": "agent-os/product/tech-stack.html#hosting",
+    "title": "Tech Stack",
+    "section": "",
+    "text": "GitHub Pages - Static site hosting"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Kurt Mueller",
+    "section": "",
+    "text": "Welcome\n\n\n\n\n\n\n\n\n\n\n\nNo matching items"
+  }
+]

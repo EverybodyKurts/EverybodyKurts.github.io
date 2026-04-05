@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss  xmlns:atom="http://www.w3.org/2005/Atom" 
+      xmlns:media="http://search.yahoo.com/mrss/" 
+      xmlns:content="http://purl.org/rss/1.0/modules/content/" 
+      xmlns:dc="http://purl.org/dc/elements/1.1/" 
+      version="2.0">
+<channel>
+<title>Kurt Mueller</title>
+<link>https://everybodykurts.github.io/</link>
+<atom:link href="https://everybodykurts.github.io/index.xml" rel="self" type="application/rss+xml"/>
+<description>A blog about F# and functional programming</description>
+<generator>quarto-1.9.36</generator>
+<lastBuildDate>Sun, 05 Apr 2026 20:44:29 GMT</lastBuildDate>
+<item>
+  <title>Welcome</title>
+  <link>https://everybodykurts.github.io/posts/hello-fsharp/</link>
+  <description><![CDATA[ 
+
+
+
+
+<div id="cell-1" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;polyglot_notebook&quot;,&quot;value&quot;:{&quot;kernelName&quot;:&quot;fsharp&quot;}}" data-execution_count="1">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th>``` {.f# .cell-code}</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>title: “Hello, F# World”</td>
+</tr>
+<tr class="even">
+<td>description: “My first blog post using F# and Jupyter notebooks”</td>
+</tr>
+<tr class="odd">
+<td>author: “Kurt Mueller”</td>
+</tr>
+<tr class="even">
+<td>date: “2026-03-29”</td>
+</tr>
+<tr class="odd">
+<td>categories:</td>
+</tr>
+<tr class="even">
+<td>- fsharp</td>
+</tr>
+<tr class="odd">
+<td>- getting-started</td>
+</tr>
+</tbody>
+</table>
+<pre><code>
+::: {.cell-output .cell-output-error}</code></pre>
+<p>Error: input.fsx (2,1)-(2,6) parse error Invalid prefix operator input.fsx (2,6)-(2,7) parse error Unexpected symbol ‘:’ in interaction. Expected ‘;’, ‘;;’ or other token. input.fsx (2,6)-(2,7) interactive error parse error input.fsx (2,1)-(2,6) parse error Invalid prefix operator</p>
+<p>input.fsx (2,6)-(2,7) parse error Unexpected symbol ‘:’ in interaction. Expected ‘;’, ‘;;’ or other token.</p>
+<p>input.fsx (2,6)-(2,7) interactive error parse error</p>
+<pre><code>:::
+:::
+
+
+
+This is a sample blog post written as a Jupyter notebook using the F# kernel.
+Let's start with a simple example.
+
+
+::: {#cell-3 .cell quarto-private-1='{"key":"dotnet_interactive","value":{"language":"fsharp"}}' execution_count=2}
+``` {.f# .cell-code}
+let greeting = "Hello from F#!"
+printfn "%s" greeting</code></pre>
+<div class="cell-output cell-output-stdout">
+<pre><code>Hello from F#!</code></pre>
+</div>
+</div>
+<p>F# is a functional-first language that runs on .NET. It’s great for data exploration, scripting, and building robust applications.</p>
+<p>Here’s a quick example of pattern matching:</p>
+<div id="cell-5" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}" data-execution_count="4">
+<p>``` {.f# .cell-code} type Shape = | Circle of radius: float | Rectangle of width: float * height: float</p>
+<p>let area shape = match shape with | Circle radius -&gt; System.Math.PI * radius * radius | Rectangle (width, height) -&gt; width * height</p>
+<p>let shapes = [ Circle 5.0; Rectangle (3.0, 4.0) ]</p>
+<p>shapes |&gt; List.iter (fun s -&gt; printfn “%A has area %.2f” s (area s))</p>
+<pre><code>
+::: {.cell-output .cell-output-stdout}</code></pre>
+<p>Circle 5.0 has area 78.54 Rectangle (3.0, 4.0) has area 12.00 ```</p>
+</div>
+<p>:::</p>
+
+
+
+ ]]></description>
+  <guid>https://everybodykurts.github.io/posts/hello-fsharp/</guid>
+  <pubDate>Sun, 05 Apr 2026 20:44:29 GMT</pubDate>
+</item>
+</channel>
+</rss>
