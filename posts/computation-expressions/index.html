@@ -128,25 +128,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h1>F# Computation Expressions</h1>
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<p>Most languages give you a fixed set of control flow primitives — <code>if</code>, <code>for</code>, <code>while</code>, <code>try/catch</code> — and that’s that. F# has all of those, but it also lets you <em>define your own</em>. Computation expressions are F#’s mechanism for building custom syntax that can wrap and sequence operations in ways that feel native to the language.</p>
-<p>The most familiar example from other languages is <code>async/await</code>. In C# or JavaScript, the compiler transforms <code>await</code> expressions into continuation-passing state machines behind the scenes. F# generalizes that idea: computation expressions give you the same power, but for any workflow you want to model — not just async code.</p>
-<p>In practice, they shine brightest in four places:</p>
-<ul>
-<li><strong><code>option</code></strong> — propagating the absence of a value through a chain of operations without a pyramid of <code>match</code> expressions</li>
-<li><strong><code>result</code></strong> — threading errors through a pipeline so that the first failure short-circuits the rest</li>
-<li><strong><code>async</code></strong> — composing asynchronous operations without explicit callbacks or <code>Async.bind</code> chains</li>
-<li><strong><code>query</code></strong> — writing LINQ-style data queries with a readable, SQL-like syntax built directly into the language</li>
-</ul>
-<p>In each case, the computation expression handles the plumbing — the “did this step succeed? okay, pass it to the next one” logic — so your code can focus on the happy path. The sections below walk through each one, showing what the code looks like before and after.</p>
+<p>Every developer has been here: you’re reading a function and the logic keeps indenting. First you check if a value exists. If it does, you check if the next thing is valid. If that passes, you look something else up. By the time you get to the actual work, you’re four or five levels deep — and the mental overhead of tracking which branch you’re in, and what happens if any step fails, is exhausting.</p>
+<p>This problem shows up constantly: validating user input, chaining database lookups, composing async API calls. The nesting isn’t a sign of bad code — it’s the natural shape of logic that needs to handle failure at every step. But natural doesn’t mean easy to read or maintain.</p>
+<p>F# has a feature called <em>computation expressions</em> that solves this directly. Instead of stacking conditionals inside one another, you write each step on its own line — flat, sequential, like a straight-line script. The computation expression handles the branching logic for you: if any step fails or returns nothing, the whole block short-circuits and returns early. Your code describes <em>what</em> to do; the CE handles <em>when to stop</em>.</p>
+<p>You don’t need to know F# to follow along. The sections below walk through real examples — chaining optional values, propagating errors, composing async calls — and show the before and after side by side. The goal is to show how computation expressions can make complex branching logic simpler to read, simpler to write, and simpler to change.</p>
 </section>
 <section id="options" class="level2">
 <h2 class="anchored" data-anchor-id="options">Options</h2>
 <p>F#’s <code>option</code> type represents a value that may or may not be present. It’s the principled alternative to <code>null</code>. A value is either <code>Some x</code> or <code>None</code>, and the type system forces you to handle both cases.</p>
 <p>There are a couple of ways to handle this without a computation expression, and both have trade-offs.</p>
-<blockquote class="blockquote">
-<p><strong>Note:</strong> The <code>option</code> computation expression is part of the F# standard library — no extra packages needed.</p>
-</blockquote>
-<div id="e84e2fc8" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;polyglot-notebook&quot;}}">
+<div id="e84e2fc8" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>//<span class="co"> Imagine a small domain: users have an active subscription, subscriptions have a promo code</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> PromoCode = <span class="op">{</span> Code: <span class="dt">string</span>; DiscountPct: <span class="dt">int</span> <span class="op">}</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Subscription = <span class="op">{</span> Plan: <span class="dt">string</span>; PromoCode: PromoCode <span class="dt">option</span> <span class="op">}</span></span>
@@ -190,7 +181,7 @@ Option.bind:  Some 20
 Option.bind:  None</code></pre>
 </div>
 </div>
-<div id="71ba9140" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;polyglot-notebook&quot;}}">
+<div id="71ba9140" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>//<span class="co"> --- With the option computation expression ---</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>//<span class="co"> `let!` unwraps a `Some`, or short-circuits with `None` if the value is absent.</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>//<span class="co"> The happy path reads top-to-bottom with no nesting.</span></span>
