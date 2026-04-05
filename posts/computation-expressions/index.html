@@ -336,6 +336,12 @@ Option.bind:  None</code></pre>
 <p>This is not special syntax baked into the compiler — <code>query</code> is just another computation expression builder, defined in the standard library. <code>for</code>, <code>where</code>, <code>sortByDescending</code>, and <code>select</code> are all methods on the builder that the compiler desugars into <code>IQueryable</code>-compatible calls. The same mechanism that powers <code>option { }</code> and <code>result { }</code> powers SQL-translatable database queries.</p>
 <p>That’s the deeper point: computation expressions are a general-purpose abstraction. Once you understand the pattern — a builder type with <code>Bind</code>, <code>Return</code>, and friends — you can read (and write) any CE in the ecosystem, whether it’s for async workflows, error handling, query composition, or something domain-specific you’ve built yourself.</p>
 </section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>The examples in this post cover four different problems — missing values, validation errors, async operations, and data queries — but the underlying pattern is the same every time. Without a computation expression, handling failure at each step means nesting: every check wraps the next one, and the actual logic gets buried in indentation. With a computation expression, the same code reads top to bottom, one step per line, with the branching logic handled invisibly by the CE.</p>
+<p>That’s the practical case for computation expressions: not that they do something new, but that they make existing logic easier to follow. The code becomes shorter, yes — but more importantly, it becomes easier to reason about. You can read a <code>result { }</code> block and immediately see the sequence of operations without mentally tracking which <code>match</code> branch you’re inside.</p>
+<p>If you’re coming from another language and evaluating F#, computation expressions are worth paying attention to. Most of what they give you — flat error propagation, readable async code, composable validation — requires third-party libraries or language extensions elsewhere. In F#, it’s a first-class feature of the language itself, and one that quietly improves code quality across the board.</p>
+</section>
 </section>
 
 </main>
