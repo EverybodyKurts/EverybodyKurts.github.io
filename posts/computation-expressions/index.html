@@ -64,7 +64,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="index_files/libs/clipboard/clipboard.min.js"></script>
+<script src="index_files/libs/clipboard/clipboard.min.js"></script>
 <script src="index_files/libs/quarto-html/quarto.js" type="module"></script>
 <script src="index_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="index_files/libs/quarto-html/popper.min.js"></script>
@@ -75,9 +75,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="index_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="index_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="index_files/libs/bootstrap/bootstrap-138a6193a3bd40baf1e627da441a4734.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
-<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
-
-<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
 
 </head>
@@ -133,13 +130,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
 <p>Most languages give you a fixed set of control flow primitives — <code>if</code>, <code>for</code>, <code>while</code>, <code>try/catch</code> — and that’s that. F# has all of those, but it also lets you <em>define your own</em>. Computation expressions are F#’s mechanism for building custom syntax that can wrap and sequence operations in ways that feel native to the language.</p>
 <p>The most familiar example from other languages is <code>async/await</code>. In C# or JavaScript, the compiler transforms <code>await</code> expressions into continuation-passing state machines behind the scenes. F# generalizes that idea: computation expressions give you the same power, but for any workflow you want to model — not just async code.</p>
-<p>In practice, they shine brightest in three places:</p>
+<p>In practice, they shine brightest in four places:</p>
 <ul>
 <li><strong><code>option</code></strong> — propagating the absence of a value through a chain of operations without a pyramid of <code>match</code> expressions</li>
 <li><strong><code>result</code></strong> — threading errors through a pipeline so that the first failure short-circuits the rest</li>
-<li><strong><code>async</code></strong> — composing asynchronous operations without explicit callbacks or <code>.ContinueWith</code> chains</li>
+<li><strong><code>async</code></strong> — composing asynchronous operations without explicit callbacks or <code>Async.bind</code> chains</li>
+<li><strong><code>query</code></strong> — writing LINQ-style data queries with a readable, SQL-like syntax built directly into the language</li>
 </ul>
 <p>In each case, the computation expression handles the plumbing — the “did this step succeed? okay, pass it to the next one” logic — so your code can focus on the happy path. The sections below walk through each one, showing what the code looks like before and after.</p>
+</section>
+<section id="options" class="level2">
+<h2 class="anchored" data-anchor-id="options">Options</h2>
+<p>F#’s <code>option</code> type represents a value that may or may not be present. It’s the principled alternative to <code>null</code>. A value is either <code>Some x</code> or <code>None</code>, and the type system forces you to handle both cases.</p>
 <p>There are a couple of ways to handle this without a computation expression, and both have trade-offs.</p>
 <blockquote class="blockquote">
 <p><strong>Note:</strong> The <code>option</code> computation expression is part of the F# standard library — no extra packages needed.</p>
@@ -213,7 +215,7 @@ Option.bind:  None</code></pre>
 <blockquote class="blockquote">
 <p><strong>Note:</strong> Unlike <code>option</code>, the <code>result</code> CE is not in the F# standard library. It comes from <a href="https://github.com/demystifyfp/FsToolkit.ErrorHandling"><code>FsToolkit.ErrorHandling</code></a>, a widely-used community package that adds computation expression support for <code>Result</code>, <code>Async</code>, and more.</p>
 </blockquote>
-<div id="cell-7" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}">
+<div id="2300ab5c" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>//<span class="co"> A small validation pipeline: parse an order from raw input</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> OrderError = InvalidId | NegativeQuantity | UnknownProduct</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Order = <span class="op">{</span> Id: <span class="dt">int</span>; ProductId: <span class="dt">int</span>; Quantity: <span class="dt">int</span> <span class="op">}</span></span>
@@ -257,13 +259,10 @@ Option.bind:  None</code></pre>
 <span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>printfn <span class="st">"Result.bind:  %A"</span> <span class="op">(</span>parseOrderResultBind <span class="st">"7"</span> <span class="dv">3</span> <span class="dv">42</span><span class="op">)</span>   //<span class="co"> Ok ...</span></span>
 <span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>printfn <span class="st">"Result.bind:  %A"</span> <span class="op">(</span>parseOrderResultBind <span class="st">"abc"</span> <span class="dv">3</span> <span class="dv">42</span><span class="op">)</span> //<span class="co"> Error InvalidId</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="cell-8" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;vscode&quot;,&quot;value&quot;:{&quot;languageId&quot;:&quot;polyglot-notebook&quot;}}">
+<div id="cell-8" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ot">#r "nuget: FsToolkit.ErrorHandling"</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ot">open</span> FsToolkit<span class="kw">.</span>ErrorHandling</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display">
-<div><div></div><div></div><div><strong>Installed Packages</strong><ul><li><span>FsToolkit.ErrorHandling, 5.2.0</span></li></ul></div></div>
-</div>
 </div>
 <div id="cell-9" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>//<span class="co"> --- With the result computation expression (FsToolkit.ErrorHandling) ---</span></span>
@@ -283,16 +282,66 @@ Option.bind:  None</code></pre>
 </div>
 <p>The <code>Result.bind</code> version avoids the rightward drift of nested matches, but notice that threading <code>id</code> and <code>validQty</code> into the final <code>Result.map</code> requires nesting the lambdas anyway — you can’t easily keep all the bound values in scope when chaining with <code>|&gt;</code>. The <code>result { }</code> CE solves both problems at once: it’s flat, and every <code>let!</code> binding is naturally in scope for the rest of the block.</p>
 </section>
+<section id="async" class="level2">
+<h2 class="anchored" data-anchor-id="async">Async</h2>
+<p>F#’s <code>async { }</code> computation expression is the built-in way to write asynchronous code. It predates C#’s <code>async/await</code> and works on the same idea: <code>let!</code> suspends the current workflow until an async operation completes, then binds the result — without blocking a thread.</p>
+<p>Without the CE, composing async operations means chaining <code>Async.bind</code> calls. Like <code>Result.bind</code>, this works for a single hop but gets unwieldy as soon as you need to carry multiple values forward.</p>
+<blockquote class="blockquote">
+<p><strong>Note:</strong> The <code>async</code> computation expression is part of the F# standard library.</p>
+</blockquote>
+<div id="cell-12" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>//<span class="co"> Simulated async data layer</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> User    = <span class="op">{</span> Id: <span class="dt">int</span>; Name: <span class="dt">string</span> <span class="op">}</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Product = <span class="op">{</span> Id: <span class="dt">int</span>; Name: <span class="dt">string</span>; Price: <span class="dt">float</span> <span class="op">}</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Cart    = <span class="op">{</span> UserId: <span class="dt">int</span>; ProductIds: <span class="dt">int</span> list <span class="op">}</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> fetchUser    <span class="op">(</span>id: <span class="dt">int</span><span class="op">)</span>      : Async&lt;User&gt;    = async <span class="op">{</span> <span class="kw">return</span> <span class="op">{</span> Id = id; Name = <span class="st">"Alice"</span> <span class="op">}</span> <span class="op">}</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> fetchCart    <span class="op">(</span>userId: <span class="dt">int</span><span class="op">)</span>  : Async&lt;Cart&gt;    = async <span class="op">{</span> <span class="kw">return</span> <span class="op">{</span> UserId = userId; ProductIds = <span class="op">[</span><span class="dv">1</span>; <span class="dv">2</span>; <span class="dv">3</span><span class="op">]</span> <span class="op">}</span> <span class="op">}</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> fetchProduct <span class="op">(</span>productId: <span class="dt">int</span><span class="op">)</span>: Async&lt;Product&gt; = async <span class="op">{</span> <span class="kw">return</span> <span class="op">{</span> Id = productId; Name = <span class="st">"Widget"</span>; Price = <span class="fl">9.99</span> <span class="op">}</span> <span class="op">}</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>//<span class="co"> --- Before: Async.bind ---</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>//<span class="co"> Each hop needs its own Async.bind. Threading `user` and `cart` into</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>//<span class="co"> the final step requires nesting — the same problem as Result.bind.</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> getCartTotalBind <span class="op">(</span>userId: <span class="dt">int</span><span class="op">)</span> : Async&lt;<span class="dt">float</span>&gt; =</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    fetchUser userId</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    |&gt; Async<span class="kw">.</span>bind <span class="op">(</span><span class="kw">fun</span> user -&gt;</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>        fetchCart user.Id</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>        |&gt; Async<span class="kw">.</span>bind <span class="op">(</span><span class="kw">fun</span> cart -&gt;</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>            cart.ProductIds</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>            |&gt; List<span class="kw">.</span>map fetchProduct</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>            |&gt; Async<span class="kw">.</span>Sequential</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>            |&gt; Async<span class="kw">.</span>map <span class="op">(</span><span class="kw">fun</span> products -&gt;</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>                products |&gt; Array<span class="kw">.</span>sumBy <span class="op">(</span><span class="kw">fun</span> p -&gt; p.Price<span class="op">))))</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>getCartTotalBind <span class="dv">1</span> |&gt; Async<span class="kw">.</span>RunSynchronously |&gt; printfn <span class="st">"Async.bind: %.2f"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="cell-13" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>//<span class="co"> --- With the async computation expression ---</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>//<span class="co"> `let!` suspends until each async completes and binds the result.</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>//<span class="co"> All values stay in scope — no nesting required.</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> getCartTotalCE <span class="op">(</span>userId: <span class="dt">int</span><span class="op">)</span> : Async&lt;<span class="dt">float</span>&gt; =</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    async <span class="op">{</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span>! user     = fetchUser userId</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span>! cart     = fetchCart user.Id</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span>! products = cart.ProductIds |&gt; List<span class="kw">.</span>map fetchProduct |&gt; Async<span class="kw">.</span>Sequential</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        <span class="kw">return</span> products |&gt; Array<span class="kw">.</span>sumBy <span class="op">(</span><span class="kw">fun</span> p -&gt; p.Price<span class="op">)</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>getCartTotalCE <span class="dv">1</span> |&gt; Async<span class="kw">.</span>RunSynchronously |&gt; printfn <span class="st">"async CE: %.2f"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The structure mirrors the <code>result</code> CE: <code>let!</code> on each async step, all bindings in scope, linear top-to-bottom flow. The <code>Async.bind</code> version forces nesting once you need to reference <code>user</code> and <code>cart</code> together in the final step — the CE keeps everything flat.</p>
+<p>One thing worth noting: F#’s <code>async { }</code> does not use the <code>Task&lt;T&gt;</code> type that C# <code>async/await</code> produces. If you’re interoperating with .NET libraries that return <code>Task</code>, you can use <code>task { }</code> instead — it’s the same CE pattern, but backed by <code>Task&lt;T&gt;</code> rather than F#’s <code>Async&lt;T&gt;</code>.</p>
+</section>
 <section id="query-expressions" class="level2">
 <h2 class="anchored" data-anchor-id="query-expressions">Query Expressions</h2>
 <p>Computation expressions aren’t limited to error handling. F# also has a built-in <code>query { }</code> CE that brings LINQ-style querying directly into the language — no extension methods, no lambda-heavy syntax.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> highValueOrders =</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    query <span class="op">{</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>        <span class="kw">for</span> order <span class="kw">in</span> orders <span class="kw">do</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>        where <span class="op">(</span>order.Total &gt; <span class="fl">100.0</span><span class="op">)</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>        sortByDescending order.Total</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>        select order</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> highValueOrders =</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    query <span class="op">{</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>        <span class="kw">for</span> order <span class="kw">in</span> orders <span class="kw">do</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>        where <span class="op">(</span>order.Total &gt; <span class="fl">100.0</span><span class="op">)</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>        sortByDescending order.Total</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>        select order</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>This is not special syntax baked into the compiler — <code>query</code> is just another computation expression builder, defined in the standard library. <code>for</code>, <code>where</code>, <code>sortByDescending</code>, and <code>select</code> are all methods on the builder that the compiler desugars into <code>IQueryable</code>-compatible calls. The same mechanism that powers <code>option { }</code> and <code>result { }</code> powers SQL-translatable database queries.</p>
 <p>That’s the deeper point: computation expressions are a general-purpose abstraction. Once you understand the pattern — a builder type with <code>Bind</code>, <code>Return</code>, and friends — you can read (and write) any CE in the ecosystem, whether it’s for async workflows, error handling, query composition, or something domain-specific you’ve built yourself.</p>
 </section>
