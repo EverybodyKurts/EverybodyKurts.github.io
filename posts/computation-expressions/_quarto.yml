@@ -1,0 +1,6 @@
+title: "F# Computation Expressions"
+description: "How F# computation expressions makes code more succinct and readable, demonstrated with FsToolkit.ErrorHandling's result workflow"
+author: "Kurt Mueller"
+date: "2026-04-05"
+categories:
+  - fsharp
