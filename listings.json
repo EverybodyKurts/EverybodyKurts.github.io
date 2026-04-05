@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/computation-expressions/index.html",
       "/posts/hello-fsharp/index.html"
     ]
   }

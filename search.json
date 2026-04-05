@@ -1,136 +1,80 @@
 [
   {
-    "objectID": "posts/hello-fsharp/index.html",
-    "href": "posts/hello-fsharp/index.html",
-    "title": "Hello, F# World",
+    "objectID": "posts/computation-expressions/index.html",
+    "href": "posts/computation-expressions/index.html",
+    "title": "F# Computation Expressions",
     "section": "",
-    "text": "This is a sample blog post written as a Jupyter notebook using the F# kernel. Let’s start with a simple example.\n\nlet greeting = \"Hello from F#!\"\nprintfn \"%s\" greeting\n\nHello from F#!\n\n\nF# is a functional-first language that runs on .NET. It’s great for data exploration, scripting, and building robust applications.\nHere’s a quick example of pattern matching:\n\ntype Shape =\n    | Circle of radius: float\n    | Rectangle of width: float * height: float\n\nlet area shape =\n    match shape with\n    | Circle radius -&gt; System.Math.PI * radius * radius\n    | Rectangle (width, height) -&gt; width * height\n\nlet shapes = [ Circle 5.0; Rectangle (3.0, 4.0) ]\n\nshapes\n|&gt; List.iter (fun s -&gt; printfn \"%A has area %.2f\" s (area s))\n\nCircle 5.0 has area 78.54\nRectangle (3.0, 4.0) has area 12.00"
+    "text": "Most languages give you a fixed set of control flow primitives — if, for, while, try/catch — and that’s that. F# has all of those, but it also lets you define your own. Computation expressions are F#’s mechanism for building custom syntax that can wrap and sequence operations in ways that feel native to the language.\nThe most familiar example from other languages is async/await. In C# or JavaScript, the compiler transforms await expressions into continuation-passing state machines behind the scenes. F# generalizes that idea: computation expressions give you the same power, but for any workflow you want to model — not just async code.\nIn practice, they shine brightest in four places:\n\noption — propagating the absence of a value through a chain of operations without a pyramid of match expressions\nresult — threading errors through a pipeline so that the first failure short-circuits the rest\nasync — composing asynchronous operations without explicit callbacks or Async.bind chains\nquery — writing LINQ-style data queries with a readable, SQL-like syntax built directly into the language\n\nIn each case, the computation expression handles the plumbing — the “did this step succeed? okay, pass it to the next one” logic — so your code can focus on the happy path. The sections below walk through each one, showing what the code looks like before and after."
   },
   {
-    "objectID": "posts/hello-fsharp/index.html#welcome",
-    "href": "posts/hello-fsharp/index.html#welcome",
-    "title": "Hello, F# World",
+    "objectID": "posts/computation-expressions/index.html#introduction",
+    "href": "posts/computation-expressions/index.html#introduction",
+    "title": "F# Computation Expressions",
     "section": "",
-    "text": "This is a sample blog post written as a Jupyter notebook using the F# kernel. Let’s start with a simple example.\n\nlet greeting = \"Hello from F#!\"\nprintfn \"%s\" greeting\n\nHello from F#!\n\n\nF# is a functional-first language that runs on .NET. It’s great for data exploration, scripting, and building robust applications.\nHere’s a quick example of pattern matching:\n\ntype Shape =\n    | Circle of radius: float\n    | Rectangle of width: float * height: float\n\nlet area shape =\n    match shape with\n    | Circle radius -&gt; System.Math.PI * radius * radius\n    | Rectangle (width, height) -&gt; width * height\n\nlet shapes = [ Circle 5.0; Rectangle (3.0, 4.0) ]\n\nshapes\n|&gt; List.iter (fun s -&gt; printfn \"%A has area %.2f\" s (area s))\n\nCircle 5.0 has area 78.54\nRectangle (3.0, 4.0) has area 12.00"
+    "text": "Most languages give you a fixed set of control flow primitives — if, for, while, try/catch — and that’s that. F# has all of those, but it also lets you define your own. Computation expressions are F#’s mechanism for building custom syntax that can wrap and sequence operations in ways that feel native to the language.\nThe most familiar example from other languages is async/await. In C# or JavaScript, the compiler transforms await expressions into continuation-passing state machines behind the scenes. F# generalizes that idea: computation expressions give you the same power, but for any workflow you want to model — not just async code.\nIn practice, they shine brightest in four places:\n\noption — propagating the absence of a value through a chain of operations without a pyramid of match expressions\nresult — threading errors through a pipeline so that the first failure short-circuits the rest\nasync — composing asynchronous operations without explicit callbacks or Async.bind chains\nquery — writing LINQ-style data queries with a readable, SQL-like syntax built directly into the language\n\nIn each case, the computation expression handles the plumbing — the “did this step succeed? okay, pass it to the next one” logic — so your code can focus on the happy path. The sections below walk through each one, showing what the code looks like before and after."
   },
   {
-    "objectID": "agent-os/product/roadmap.html",
-    "href": "agent-os/product/roadmap.html",
-    "title": "Product Roadmap",
-    "section": "",
-    "text": "Quarto blog scaffolding with _quarto.yml configuration\nGitHub Actions workflow for publishing to GitHub Pages\nLocal F# notebook authoring setup (dotnet-interactive + Jupyter)\nfreeze: true configuration for pre-computed outputs\nAt least one sample blog post as a .ipynb notebook\n\n\n\n\n\nCustom theme and styling\nRSS feed configuration\nMulti-language notebook support (F# and Python in the same blog)"
+    "objectID": "posts/computation-expressions/index.html#options",
+    "href": "posts/computation-expressions/index.html#options",
+    "title": "F# Computation Expressions",
+    "section": "Options",
+    "text": "Options\nF#’s option type represents a value that may or may not be present. It’s the principled alternative to null. A value is either Some x or None, and the type system forces you to handle both cases.\nThere are a couple of ways to handle this without a computation expression, and both have trade-offs.\n\nNote: The option computation expression is part of the F# standard library — no extra packages needed.\n\n\n// Imagine a small domain: users have an active subscription, subscriptions have a promo code\ntype PromoCode = { Code: string; DiscountPct: int }\ntype Subscription = { Plan: string; PromoCode: PromoCode option }\ntype User = { Name: string; Subscription: Subscription option }\n\nlet findUser (id: int) : User option =\n    if id = 1 then Some { Name = \"Alice\"; Subscription = Some { Plan = \"Pro\"; PromoCode = Some { Code = \"SAVE20\"; DiscountPct = 20 } } }\n    else None\n\n// --- Before: cascading match expressions ---\n// Each optional hop requires its own match arm. Nesting grows with the chain.\nlet getDiscountNestedMatch (userId: int) : int option =\n    match findUser userId with\n    | None -&gt; None\n    | Some user -&gt;\n        match user.Subscription with\n        | None -&gt; None\n        | Some sub -&gt;\n            match sub.PromoCode with\n            | None -&gt; None\n            | Some promo -&gt; Some promo.DiscountPct\n\nprintfn \"Nested match: %A\" (getDiscountNestedMatch 1)   // Some 20\nprintfn \"Nested match: %A\" (getDiscountNestedMatch 99)  // None\n\n// --- Before: Option.bind ---\n// Option.bind f opt evaluates to: match opt with None -&gt; None | Some x -&gt; f x\n// Piping through Option.bind flattens the nesting, but the lambda noise adds up.\nlet getDiscountOptionBind (userId: int) : int option =\n    findUser userId\n    |&gt; Option.bind  (fun user  -&gt; user.Subscription)\n    |&gt; Option.bind  (fun sub   -&gt; sub.PromoCode)\n    |&gt; Option.map   (fun promo -&gt; promo.DiscountPct)\n\nprintfn \"Option.bind:  %A\" (getDiscountOptionBind 1)   // Some 20\nprintfn \"Option.bind:  %A\" (getDiscountOptionBind 99)  // None\n\nNested match: Some 20\nNested match: None\nOption.bind:  Some 20\nOption.bind:  None\n\n\n\n// --- With the option computation expression ---\n// `let!` unwraps a `Some`, or short-circuits with `None` if the value is absent.\n// The happy path reads top-to-bottom with no nesting.\nlet getDiscountWithCE (userId: int) : int option =\n    option {\n        let! user  = findUser userId\n        let! sub   = user.Subscription\n        let! promo = sub.PromoCode\n        return promo.DiscountPct\n    }\n\nprintfn \"option CE:    %A\" (getDiscountWithCE 1)   // Some 20\nprintfn \"option CE:    %A\" (getDiscountWithCE 99)  // None\n\nThe logic is identical across all three, but each approach makes a different trade-off. Nested match is maximally explicit but creates a rightward drift that gets worse with every hop. Option.bind flattens the structure using a pipeline, which is better — but you’re still writing a lambda for each step, and the ceremony starts to obscure what you’re actually computing. The computation expression eliminates both problems: let! unwraps each option and short-circuits on None, while the block reads straight down like ordinary sequential code.\nThis pattern scales cleanly. Whether you’re unwrapping two optional values or ten, the structure stays flat."
   },
   {
-    "objectID": "agent-os/product/roadmap.html#phase-1-mvp",
-    "href": "agent-os/product/roadmap.html#phase-1-mvp",
-    "title": "Product Roadmap",
-    "section": "",
-    "text": "Quarto blog scaffolding with _quarto.yml configuration\nGitHub Actions workflow for publishing to GitHub Pages\nLocal F# notebook authoring setup (dotnet-interactive + Jupyter)\nfreeze: true configuration for pre-computed outputs\nAt least one sample blog post as a .ipynb notebook"
+    "objectID": "posts/computation-expressions/index.html#results",
+    "href": "posts/computation-expressions/index.html#results",
+    "title": "F# Computation Expressions",
+    "section": "Results",
+    "text": "Results\nThe result type takes the option idea further: instead of just signalling absence with None, it carries an error value when something goes wrong. A result is either Ok value or Error err, and like option, the type system forces you to handle both cases.\nChaining fallible operations has the same structural problem as chaining optional ones — each step might fail, and you want to short-circuit on the first error. The result CE from FsToolkit.ErrorHandling handles this cleanly.\n\nNote: Unlike option, the result CE is not in the F# standard library. It comes from FsToolkit.ErrorHandling, a widely-used community package that adds computation expression support for Result, Async, and more.\n\n\n// A small validation pipeline: parse an order from raw input\ntype OrderError = InvalidId | NegativeQuantity | UnknownProduct\ntype Order = { Id: int; ProductId: int; Quantity: int }\n\nlet parseId (raw: string) : Result&lt;int, OrderError&gt; =\n    match System.Int32.TryParse raw with\n    | true, n when n &gt; 0 -&gt; Ok n\n    | _ -&gt; Error InvalidId\n\nlet validateQuantity (qty: int) : Result&lt;int, OrderError&gt; =\n    if qty &gt; 0 then Ok qty else Error NegativeQuantity\n\nlet lookupProduct (productId: int) : Result&lt;int, OrderError&gt; =\n    if productId = 42 then Ok productId else Error UnknownProduct\n\n// --- Before: cascading match expressions ---\nlet parseOrderNestedMatch (rawId: string) (qty: int) (productId: int) : Result&lt;Order, OrderError&gt; =\n    match parseId rawId with\n    | Error e -&gt; Error e\n    | Ok id -&gt;\n        match validateQuantity qty with\n        | Error e -&gt; Error e\n        | Ok validQty -&gt;\n            match lookupProduct productId with\n            | Error e -&gt; Error e\n            | Ok pid -&gt; Ok { Id = id; ProductId = pid; Quantity = validQty }\n\nprintfn \"Nested match: %A\" (parseOrderNestedMatch \"7\" 3 42)   // Ok ...\nprintfn \"Nested match: %A\" (parseOrderNestedMatch \"7\" -1 42)  // Error NegativeQuantity\n\n// --- Before: Result.bind ---\n// Flattens the nesting but requires threading intermediate values manually.\nlet parseOrderResultBind (rawId: string) (qty: int) (productId: int) : Result&lt;Order, OrderError&gt; =\n    parseId rawId\n    |&gt; Result.bind (fun id -&gt;\n        validateQuantity qty\n        |&gt; Result.bind (fun validQty -&gt;\n            lookupProduct productId\n            |&gt; Result.map (fun pid -&gt; { Id = id; ProductId = pid; Quantity = validQty })))\n\nprintfn \"Result.bind:  %A\" (parseOrderResultBind \"7\" 3 42)   // Ok ...\nprintfn \"Result.bind:  %A\" (parseOrderResultBind \"abc\" 3 42) // Error InvalidId\n\n\n#r \"nuget: FsToolkit.ErrorHandling\"\n\nopen FsToolkit.ErrorHandling\n\n\n// --- With the result computation expression (FsToolkit.ErrorHandling) ---\n// `let!` unwraps Ok, or short-circuits with the Error value.\n// All intermediate values stay in scope — no manual threading.\nlet parseOrderCE (rawId: string) (qty: int) (productId: int) : Result&lt;Order, OrderError&gt; =\n    result {\n        let! id       = parseId rawId\n        let! validQty = validateQuantity qty\n        let! pid      = lookupProduct productId\n        return { Id = id; ProductId = pid; Quantity = validQty }\n    }\n\nprintfn \"result CE: %A\" (parseOrderCE \"7\" 3 42)    // Ok { Id = 7; ProductId = 42; Quantity = 3 }\nprintfn \"result CE: %A\" (parseOrderCE \"abc\" 3 42)  // Error InvalidId\nprintfn \"result CE: %A\" (parseOrderCE \"7\" 3 99)    // Error UnknownProduct\n\nThe Result.bind version avoids the rightward drift of nested matches, but notice that threading id and validQty into the final Result.map requires nesting the lambdas anyway — you can’t easily keep all the bound values in scope when chaining with |&gt;. The result { } CE solves both problems at once: it’s flat, and every let! binding is naturally in scope for the rest of the block."
   },
   {
-    "objectID": "agent-os/product/roadmap.html#phase-2-post-launch",
-    "href": "agent-os/product/roadmap.html#phase-2-post-launch",
-    "title": "Product Roadmap",
-    "section": "",
-    "text": "Custom theme and styling\nRSS feed configuration\nMulti-language notebook support (F# and Python in the same blog)"
+    "objectID": "posts/computation-expressions/index.html#async",
+    "href": "posts/computation-expressions/index.html#async",
+    "title": "F# Computation Expressions",
+    "section": "Async",
+    "text": "Async\nF#’s async { } computation expression is the built-in way to write asynchronous code. It predates C#’s async/await and works on the same idea: let! suspends the current workflow until an async operation completes, then binds the result — without blocking a thread.\nWithout the CE, composing async operations means chaining Async.bind calls. Like Result.bind, this works for a single hop but gets unwieldy as soon as you need to carry multiple values forward.\n\nNote: The async computation expression is part of the F# standard library.\n\n\n// Simulated async data layer\ntype User    = { Id: int; Name: string }\ntype Product = { Id: int; Name: string; Price: float }\ntype Cart    = { UserId: int; ProductIds: int list }\n\nlet fetchUser    (id: int)      : Async&lt;User&gt;    = async { return { Id = id; Name = \"Alice\" } }\nlet fetchCart    (userId: int)  : Async&lt;Cart&gt;    = async { return { UserId = userId; ProductIds = [1; 2; 3] } }\nlet fetchProduct (productId: int): Async&lt;Product&gt; = async { return { Id = productId; Name = \"Widget\"; Price = 9.99 } }\n\n// --- Before: Async.bind ---\n// Each hop needs its own Async.bind. Threading `user` and `cart` into\n// the final step requires nesting — the same problem as Result.bind.\nlet getCartTotalBind (userId: int) : Async&lt;float&gt; =\n    fetchUser userId\n    |&gt; Async.bind (fun user -&gt;\n        fetchCart user.Id\n        |&gt; Async.bind (fun cart -&gt;\n            cart.ProductIds\n            |&gt; List.map fetchProduct\n            |&gt; Async.Sequential\n            |&gt; Async.map (fun products -&gt;\n                products |&gt; Array.sumBy (fun p -&gt; p.Price))))\n\ngetCartTotalBind 1 |&gt; Async.RunSynchronously |&gt; printfn \"Async.bind: %.2f\"\n\n\n// --- With the async computation expression ---\n// `let!` suspends until each async completes and binds the result.\n// All values stay in scope — no nesting required.\nlet getCartTotalCE (userId: int) : Async&lt;float&gt; =\n    async {\n        let! user     = fetchUser userId\n        let! cart     = fetchCart user.Id\n        let! products = cart.ProductIds |&gt; List.map fetchProduct |&gt; Async.Sequential\n        return products |&gt; Array.sumBy (fun p -&gt; p.Price)\n    }\n\ngetCartTotalCE 1 |&gt; Async.RunSynchronously |&gt; printfn \"async CE: %.2f\"\n\nThe structure mirrors the result CE: let! on each async step, all bindings in scope, linear top-to-bottom flow. The Async.bind version forces nesting once you need to reference user and cart together in the final step — the CE keeps everything flat.\nOne thing worth noting: F#’s async { } does not use the Task&lt;T&gt; type that C# async/await produces. If you’re interoperating with .NET libraries that return Task, you can use task { } instead — it’s the same CE pattern, but backed by Task&lt;T&gt; rather than F#’s Async&lt;T&gt;."
   },
   {
-    "objectID": "agent-os/product/tech-stack.html",
-    "href": "agent-os/product/tech-stack.html",
-    "title": "Tech Stack",
-    "section": "",
-    "text": "Quarto - Multi-language publishing system for rendering notebooks to HTML\n\n\n\n\n\nJupyter - Notebook authoring environment\ndotnet-interactive - Provides the .net-fsharp Jupyter kernel for F# execution\n\n\n\n\n\nF# - Primary notebook language\nPython - Secondary notebook language (planned)\n\n\n\n\n\nGitHub Actions - Automated build and deploy pipeline\n\n\n\n\n\nGitHub Pages - Static site hosting"
+    "objectID": "posts/computation-expressions/index.html#query-expressions",
+    "href": "posts/computation-expressions/index.html#query-expressions",
+    "title": "F# Computation Expressions",
+    "section": "Query Expressions",
+    "text": "Query Expressions\nComputation expressions aren’t limited to error handling. F# also has a built-in query { } CE that brings LINQ-style querying directly into the language — no extension methods, no lambda-heavy syntax.\nlet highValueOrders =\n    query {\n        for order in orders do\n        where (order.Total &gt; 100.0)\n        sortByDescending order.Total\n        select order\n    }\nThis is not special syntax baked into the compiler — query is just another computation expression builder, defined in the standard library. for, where, sortByDescending, and select are all methods on the builder that the compiler desugars into IQueryable-compatible calls. The same mechanism that powers option { } and result { } powers SQL-translatable database queries.\nThat’s the deeper point: computation expressions are a general-purpose abstraction. Once you understand the pattern — a builder type with Bind, Return, and friends — you can read (and write) any CE in the ecosystem, whether it’s for async workflows, error handling, query composition, or something domain-specific you’ve built yourself."
   },
   {
-    "objectID": "agent-os/product/tech-stack.html#publishing",
-    "href": "agent-os/product/tech-stack.html#publishing",
-    "title": "Tech Stack",
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Kurt Mueller",
     "section": "",
-    "text": "Quarto - Multi-language publishing system for rendering notebooks to HTML"
+    "text": "F# Computation Expressions\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nHello, F# World\n\n\n\nfsharp\n\ngetting-started\n\n\n\nMy first blog post using F# and Jupyter notebooks\n\n\n\n\n\nMar 29, 2026\n\n\nKurt Mueller\n\n\n\n\n\nNo matching items"
   },
   {
-    "objectID": "agent-os/product/tech-stack.html#notebooks",
-    "href": "agent-os/product/tech-stack.html#notebooks",
-    "title": "Tech Stack",
+    "objectID": "agent-os/product/mission.html",
+    "href": "agent-os/product/mission.html",
+    "title": "Product Mission",
     "section": "",
-    "text": "Jupyter - Notebook authoring environment\ndotnet-interactive - Provides the .net-fsharp Jupyter kernel for F# execution"
+    "text": "Creating a blog on GitHub Pages powered by Jupyter notebooks with F# language support. The F# notebook ecosystem is fragile: dotnet-interactive is deprecated (though still functional), Verso is too immature to rely on, and IfSharp is abandoned. A reliable authoring and publishing workflow is needed despite this tooling instability.\n\n\n\nPersonal technical blog for sharing ideas, experiments, and writing about F# and functional programming.\n\n\n\nThe “freeze” strategy: decouple F# execution from CI/CD publishing. Author notebooks locally using dotnet-interactive’s .net-fsharp Jupyter kernel, execute all cells before committing, and publish through Quarto with freeze: true so GitHub Actions never needs the F# kernel. This isolates the fragile dependency (F# notebook runtime) to the local authoring environment while keeping the publishing pipeline stable and kernel-agnostic."
   },
   {
-    "objectID": "agent-os/product/tech-stack.html#languages",
-    "href": "agent-os/product/tech-stack.html#languages",
-    "title": "Tech Stack",
+    "objectID": "agent-os/product/mission.html#problem",
+    "href": "agent-os/product/mission.html#problem",
+    "title": "Product Mission",
     "section": "",
-    "text": "F# - Primary notebook language\nPython - Secondary notebook language (planned)"
+    "text": "Creating a blog on GitHub Pages powered by Jupyter notebooks with F# language support. The F# notebook ecosystem is fragile: dotnet-interactive is deprecated (though still functional), Verso is too immature to rely on, and IfSharp is abandoned. A reliable authoring and publishing workflow is needed despite this tooling instability."
   },
   {
-    "objectID": "agent-os/product/tech-stack.html#cicd",
-    "href": "agent-os/product/tech-stack.html#cicd",
-    "title": "Tech Stack",
+    "objectID": "agent-os/product/mission.html#target-users",
+    "href": "agent-os/product/mission.html#target-users",
+    "title": "Product Mission",
     "section": "",
-    "text": "GitHub Actions - Automated build and deploy pipeline"
+    "text": "Personal technical blog for sharing ideas, experiments, and writing about F# and functional programming."
   },
   {
-    "objectID": "agent-os/product/tech-stack.html#hosting",
-    "href": "agent-os/product/tech-stack.html#hosting",
-    "title": "Tech Stack",
+    "objectID": "agent-os/product/mission.html#solution",
+    "href": "agent-os/product/mission.html#solution",
+    "title": "Product Mission",
     "section": "",
-    "text": "GitHub Pages - Static site hosting"
-  },
-  {
-    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/references.html",
-    "href": "agent-os/specs/2026-03-29-install-quarto-blog/references.html",
-    "title": "References for Install Quarto Blog",
-    "section": "",
-    "text": "URL: https://quarto.org/docs/websites/website-blog.html\nRelevance: Canonical guide for blog project structure, listing pages, and post metadata\n\n\n\n\n\nURL: https://quarto.org/docs/publishing/github-pages.html\nRelevance: GitHub Actions workflow setup, gh-pages branch configuration, freeze strategy\n\n\n\n\n\nURL: https://github.com/quarto-dev/quarto-actions\nRelevance: Official GitHub Actions for setup and publish steps\n\n\n\n\n\nNo existing code references in this codebase — fresh start."
-  },
-  {
-    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/references.html#quarto-documentation",
-    "href": "agent-os/specs/2026-03-29-install-quarto-blog/references.html#quarto-documentation",
-    "title": "References for Install Quarto Blog",
-    "section": "",
-    "text": "URL: https://quarto.org/docs/websites/website-blog.html\nRelevance: Canonical guide for blog project structure, listing pages, and post metadata\n\n\n\n\n\nURL: https://quarto.org/docs/publishing/github-pages.html\nRelevance: GitHub Actions workflow setup, gh-pages branch configuration, freeze strategy\n\n\n\n\n\nURL: https://github.com/quarto-dev/quarto-actions\nRelevance: Official GitHub Actions for setup and publish steps"
-  },
-  {
-    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/references.html#similar-implementations",
-    "href": "agent-os/specs/2026-03-29-install-quarto-blog/references.html#similar-implementations",
-    "title": "References for Install Quarto Blog",
-    "section": "",
-    "text": "No existing code references in this codebase — fresh start."
-  },
-  {
-    "objectID": "about.html",
-    "href": "about.html",
-    "title": "About",
-    "section": "",
-    "text": "Welcome to my blog. I write about F# and functional programming."
-  },
-  {
-    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html",
-    "href": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html",
-    "title": "Install Quarto Blog — Shaping Notes",
-    "section": "",
-    "text": "Install Quarto and configure it as a blog for GitHub Pages, fulfilling the Phase 1 MVP from the product roadmap. Includes blog scaffolding, GitHub Actions CI/CD, freeze configuration, and a sample F# notebook post.\n\n\n\n\nFreeze strategy: freeze: auto at project level, freeze: true at posts level. Posts never re-execute in CI — only locally when the author explicitly renders them.\nPublishing target: gh-pages branch via quarto-dev/quarto-actions/publish@v2. Source files stay on main.\nTheme: Default Quarto cosmo theme. Custom styling deferred to Phase 2.\nNo CI kernel dependency: GitHub Actions workflow has zero .NET/F# setup — all computation results are pre-committed in _freeze/.\nNotebook format: Standard .ipynb with cell_type: \"raw\" for YAML front matter (first cell).\n\n\n\n\n\nVisuals: None — default Quarto blog styling for now.\nReferences: Fresh start, no existing site config in the repo.\nProduct alignment: Directly implements Phase 1 MVP from agent-os/product/roadmap.md.\nStandards applied: None (standards index is empty)."
-  },
-  {
-    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html#scope",
-    "href": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html#scope",
-    "title": "Install Quarto Blog — Shaping Notes",
-    "section": "",
-    "text": "Install Quarto and configure it as a blog for GitHub Pages, fulfilling the Phase 1 MVP from the product roadmap. Includes blog scaffolding, GitHub Actions CI/CD, freeze configuration, and a sample F# notebook post."
-  },
-  {
-    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html#decisions",
-    "href": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html#decisions",
-    "title": "Install Quarto Blog — Shaping Notes",
-    "section": "",
-    "text": "Freeze strategy: freeze: auto at project level, freeze: true at posts level. Posts never re-execute in CI — only locally when the author explicitly renders them.\nPublishing target: gh-pages branch via quarto-dev/quarto-actions/publish@v2. Source files stay on main.\nTheme: Default Quarto cosmo theme. Custom styling deferred to Phase 2.\nNo CI kernel dependency: GitHub Actions workflow has zero .NET/F# setup — all computation results are pre-committed in _freeze/.\nNotebook format: Standard .ipynb with cell_type: \"raw\" for YAML front matter (first cell)."
-  },
-  {
-    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html#context",
-    "href": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html#context",
-    "title": "Install Quarto Blog — Shaping Notes",
-    "section": "",
-    "text": "Visuals: None — default Quarto blog styling for now.\nReferences: Fresh start, no existing site config in the repo.\nProduct alignment: Directly implements Phase 1 MVP from agent-os/product/roadmap.md.\nStandards applied: None (standards index is empty)."
+    "text": "The “freeze” strategy: decouple F# execution from CI/CD publishing. Author notebooks locally using dotnet-interactive’s .net-fsharp Jupyter kernel, execute all cells before committing, and publish through Quarto with freeze: true so GitHub Actions never needs the F# kernel. This isolates the fragile dependency (F# notebook runtime) to the local authoring environment while keeping the publishing pipeline stable and kernel-agnostic."
   },
   {
     "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/plan.html",
@@ -203,38 +147,136 @@
     "text": "Run quarto render locally — should produce _site/ with rendered blog\nRun quarto preview — should open browser with working blog\nVerify _freeze/posts/hello-fsharp/ exists after render\nPush to main — GitHub Actions should deploy to gh-pages\nVisit https://everybodykurts.github.io — blog should be live"
   },
   {
-    "objectID": "agent-os/product/mission.html",
-    "href": "agent-os/product/mission.html",
-    "title": "Product Mission",
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html",
+    "title": "Install Quarto Blog — Shaping Notes",
     "section": "",
-    "text": "Creating a blog on GitHub Pages powered by Jupyter notebooks with F# language support. The F# notebook ecosystem is fragile: dotnet-interactive is deprecated (though still functional), Verso is too immature to rely on, and IfSharp is abandoned. A reliable authoring and publishing workflow is needed despite this tooling instability.\n\n\n\nPersonal technical blog for sharing ideas, experiments, and writing about F# and functional programming.\n\n\n\nThe “freeze” strategy: decouple F# execution from CI/CD publishing. Author notebooks locally using dotnet-interactive’s .net-fsharp Jupyter kernel, execute all cells before committing, and publish through Quarto with freeze: true so GitHub Actions never needs the F# kernel. This isolates the fragile dependency (F# notebook runtime) to the local authoring environment while keeping the publishing pipeline stable and kernel-agnostic."
+    "text": "Install Quarto and configure it as a blog for GitHub Pages, fulfilling the Phase 1 MVP from the product roadmap. Includes blog scaffolding, GitHub Actions CI/CD, freeze configuration, and a sample F# notebook post.\n\n\n\n\nFreeze strategy: freeze: auto at project level, freeze: true at posts level. Posts never re-execute in CI — only locally when the author explicitly renders them.\nPublishing target: gh-pages branch via quarto-dev/quarto-actions/publish@v2. Source files stay on main.\nTheme: Default Quarto cosmo theme. Custom styling deferred to Phase 2.\nNo CI kernel dependency: GitHub Actions workflow has zero .NET/F# setup — all computation results are pre-committed in _freeze/.\nNotebook format: Standard .ipynb with cell_type: \"raw\" for YAML front matter (first cell).\n\n\n\n\n\nVisuals: None — default Quarto blog styling for now.\nReferences: Fresh start, no existing site config in the repo.\nProduct alignment: Directly implements Phase 1 MVP from agent-os/product/roadmap.md.\nStandards applied: None (standards index is empty)."
   },
   {
-    "objectID": "agent-os/product/mission.html#problem",
-    "href": "agent-os/product/mission.html#problem",
-    "title": "Product Mission",
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html#scope",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html#scope",
+    "title": "Install Quarto Blog — Shaping Notes",
     "section": "",
-    "text": "Creating a blog on GitHub Pages powered by Jupyter notebooks with F# language support. The F# notebook ecosystem is fragile: dotnet-interactive is deprecated (though still functional), Verso is too immature to rely on, and IfSharp is abandoned. A reliable authoring and publishing workflow is needed despite this tooling instability."
+    "text": "Install Quarto and configure it as a blog for GitHub Pages, fulfilling the Phase 1 MVP from the product roadmap. Includes blog scaffolding, GitHub Actions CI/CD, freeze configuration, and a sample F# notebook post."
   },
   {
-    "objectID": "agent-os/product/mission.html#target-users",
-    "href": "agent-os/product/mission.html#target-users",
-    "title": "Product Mission",
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html#decisions",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html#decisions",
+    "title": "Install Quarto Blog — Shaping Notes",
     "section": "",
-    "text": "Personal technical blog for sharing ideas, experiments, and writing about F# and functional programming."
+    "text": "Freeze strategy: freeze: auto at project level, freeze: true at posts level. Posts never re-execute in CI — only locally when the author explicitly renders them.\nPublishing target: gh-pages branch via quarto-dev/quarto-actions/publish@v2. Source files stay on main.\nTheme: Default Quarto cosmo theme. Custom styling deferred to Phase 2.\nNo CI kernel dependency: GitHub Actions workflow has zero .NET/F# setup — all computation results are pre-committed in _freeze/.\nNotebook format: Standard .ipynb with cell_type: \"raw\" for YAML front matter (first cell)."
   },
   {
-    "objectID": "agent-os/product/mission.html#solution",
-    "href": "agent-os/product/mission.html#solution",
-    "title": "Product Mission",
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html#context",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/shape.html#context",
+    "title": "Install Quarto Blog — Shaping Notes",
     "section": "",
-    "text": "The “freeze” strategy: decouple F# execution from CI/CD publishing. Author notebooks locally using dotnet-interactive’s .net-fsharp Jupyter kernel, execute all cells before committing, and publish through Quarto with freeze: true so GitHub Actions never needs the F# kernel. This isolates the fragile dependency (F# notebook runtime) to the local authoring environment while keeping the publishing pipeline stable and kernel-agnostic."
+    "text": "Visuals: None — default Quarto blog styling for now.\nReferences: Fresh start, no existing site config in the repo.\nProduct alignment: Directly implements Phase 1 MVP from agent-os/product/roadmap.md.\nStandards applied: None (standards index is empty)."
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Kurt Mueller",
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
     "section": "",
-    "text": "Hello, F# World\n\n\n\nfsharp\n\ngetting-started\n\n\n\nMy first blog post using F# and Jupyter notebooks\n\n\n\n\n\nMar 29, 2026\n\n\nKurt Mueller\n\n\n\n\n\nNo matching items"
+    "text": "Welcome to my blog. I write about F# and functional programming."
+  },
+  {
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/references.html",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/references.html",
+    "title": "References for Install Quarto Blog",
+    "section": "",
+    "text": "URL: https://quarto.org/docs/websites/website-blog.html\nRelevance: Canonical guide for blog project structure, listing pages, and post metadata\n\n\n\n\n\nURL: https://quarto.org/docs/publishing/github-pages.html\nRelevance: GitHub Actions workflow setup, gh-pages branch configuration, freeze strategy\n\n\n\n\n\nURL: https://github.com/quarto-dev/quarto-actions\nRelevance: Official GitHub Actions for setup and publish steps\n\n\n\n\n\nNo existing code references in this codebase — fresh start."
+  },
+  {
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/references.html#quarto-documentation",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/references.html#quarto-documentation",
+    "title": "References for Install Quarto Blog",
+    "section": "",
+    "text": "URL: https://quarto.org/docs/websites/website-blog.html\nRelevance: Canonical guide for blog project structure, listing pages, and post metadata\n\n\n\n\n\nURL: https://quarto.org/docs/publishing/github-pages.html\nRelevance: GitHub Actions workflow setup, gh-pages branch configuration, freeze strategy\n\n\n\n\n\nURL: https://github.com/quarto-dev/quarto-actions\nRelevance: Official GitHub Actions for setup and publish steps"
+  },
+  {
+    "objectID": "agent-os/specs/2026-03-29-install-quarto-blog/references.html#similar-implementations",
+    "href": "agent-os/specs/2026-03-29-install-quarto-blog/references.html#similar-implementations",
+    "title": "References for Install Quarto Blog",
+    "section": "",
+    "text": "No existing code references in this codebase — fresh start."
+  },
+  {
+    "objectID": "agent-os/product/tech-stack.html",
+    "href": "agent-os/product/tech-stack.html",
+    "title": "Tech Stack",
+    "section": "",
+    "text": "Quarto - Multi-language publishing system for rendering notebooks to HTML\n\n\n\n\n\nJupyter - Notebook authoring environment\ndotnet-interactive - Provides the .net-fsharp Jupyter kernel for F# execution\n\n\n\n\n\nF# - Primary notebook language\nPython - Secondary notebook language (planned)\n\n\n\n\n\nGitHub Actions - Automated build and deploy pipeline\n\n\n\n\n\nGitHub Pages - Static site hosting"
+  },
+  {
+    "objectID": "agent-os/product/tech-stack.html#publishing",
+    "href": "agent-os/product/tech-stack.html#publishing",
+    "title": "Tech Stack",
+    "section": "",
+    "text": "Quarto - Multi-language publishing system for rendering notebooks to HTML"
+  },
+  {
+    "objectID": "agent-os/product/tech-stack.html#notebooks",
+    "href": "agent-os/product/tech-stack.html#notebooks",
+    "title": "Tech Stack",
+    "section": "",
+    "text": "Jupyter - Notebook authoring environment\ndotnet-interactive - Provides the .net-fsharp Jupyter kernel for F# execution"
+  },
+  {
+    "objectID": "agent-os/product/tech-stack.html#languages",
+    "href": "agent-os/product/tech-stack.html#languages",
+    "title": "Tech Stack",
+    "section": "",
+    "text": "F# - Primary notebook language\nPython - Secondary notebook language (planned)"
+  },
+  {
+    "objectID": "agent-os/product/tech-stack.html#cicd",
+    "href": "agent-os/product/tech-stack.html#cicd",
+    "title": "Tech Stack",
+    "section": "",
+    "text": "GitHub Actions - Automated build and deploy pipeline"
+  },
+  {
+    "objectID": "agent-os/product/tech-stack.html#hosting",
+    "href": "agent-os/product/tech-stack.html#hosting",
+    "title": "Tech Stack",
+    "section": "",
+    "text": "GitHub Pages - Static site hosting"
+  },
+  {
+    "objectID": "agent-os/product/roadmap.html",
+    "href": "agent-os/product/roadmap.html",
+    "title": "Product Roadmap",
+    "section": "",
+    "text": "Quarto blog scaffolding with _quarto.yml configuration\nGitHub Actions workflow for publishing to GitHub Pages\nLocal F# notebook authoring setup (dotnet-interactive + Jupyter)\nfreeze: true configuration for pre-computed outputs\nAt least one sample blog post as a .ipynb notebook\n\n\n\n\n\nCustom theme and styling\nRSS feed configuration\nMulti-language notebook support (F# and Python in the same blog)"
+  },
+  {
+    "objectID": "agent-os/product/roadmap.html#phase-1-mvp",
+    "href": "agent-os/product/roadmap.html#phase-1-mvp",
+    "title": "Product Roadmap",
+    "section": "",
+    "text": "Quarto blog scaffolding with _quarto.yml configuration\nGitHub Actions workflow for publishing to GitHub Pages\nLocal F# notebook authoring setup (dotnet-interactive + Jupyter)\nfreeze: true configuration for pre-computed outputs\nAt least one sample blog post as a .ipynb notebook"
+  },
+  {
+    "objectID": "agent-os/product/roadmap.html#phase-2-post-launch",
+    "href": "agent-os/product/roadmap.html#phase-2-post-launch",
+    "title": "Product Roadmap",
+    "section": "",
+    "text": "Custom theme and styling\nRSS feed configuration\nMulti-language notebook support (F# and Python in the same blog)"
+  },
+  {
+    "objectID": "posts/hello-fsharp/index.html",
+    "href": "posts/hello-fsharp/index.html",
+    "title": "Hello, F# World",
+    "section": "",
+    "text": "This is a sample blog post written as a Jupyter notebook using the F# kernel. Let’s start with a simple example.\n\nlet greeting = \"Hello from F#!\"\nprintfn \"%s\" greeting\n\nHello from F#!\n\n\nF# is a functional-first language that runs on .NET. It’s great for data exploration, scripting, and building robust applications.\nHere’s a quick example of pattern matching:\n\ntype Shape =\n    | Circle of radius: float\n    | Rectangle of width: float * height: float\n\nlet area shape =\n    match shape with\n    | Circle radius -&gt; System.Math.PI * radius * radius\n    | Rectangle (width, height) -&gt; width * height\n\nlet shapes = [ Circle 5.0; Rectangle (3.0, 4.0) ]\n\nshapes\n|&gt; List.iter (fun s -&gt; printfn \"%A has area %.2f\" s (area s))\n\nCircle 5.0 has area 78.54\nRectangle (3.0, 4.0) has area 12.00"
+  },
+  {
+    "objectID": "posts/hello-fsharp/index.html#welcome",
+    "href": "posts/hello-fsharp/index.html#welcome",
+    "title": "Hello, F# World",
+    "section": "",
+    "text": "This is a sample blog post written as a Jupyter notebook using the F# kernel. Let’s start with a simple example.\n\nlet greeting = \"Hello from F#!\"\nprintfn \"%s\" greeting\n\nHello from F#!\n\n\nF# is a functional-first language that runs on .NET. It’s great for data exploration, scripting, and building robust applications.\nHere’s a quick example of pattern matching:\n\ntype Shape =\n    | Circle of radius: float\n    | Rectangle of width: float * height: float\n\nlet area shape =\n    match shape with\n    | Circle radius -&gt; System.Math.PI * radius * radius\n    | Rectangle (width, height) -&gt; width * height\n\nlet shapes = [ Circle 5.0; Rectangle (3.0, 4.0) ]\n\nshapes\n|&gt; List.iter (fun s -&gt; printfn \"%A has area %.2f\" s (area s))\n\nCircle 5.0 has area 78.54\nRectangle (3.0, 4.0) has area 12.00"
   }
 ]

@@ -133,5 +133,1095 @@ Rectangle (3.0, 4.0) has area 12.00</code></pre>
   <guid>https://everybodykurts.github.io/posts/hello-fsharp/</guid>
   <pubDate>Sun, 29 Mar 2026 00:00:00 GMT</pubDate>
 </item>
+<item>
+  <title>F# Computation Expressions</title>
+  <link>https://everybodykurts.github.io/posts/computation-expressions/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>Most languages give you a fixed set of control flow primitives — <code>if</code>, <code>for</code>, <code>while</code>, <code>try/catch</code> — and that’s that. F# has all of those, but it also lets you <em>define your own</em>. Computation expressions are F#’s mechanism for building custom syntax that can wrap and sequence operations in ways that feel native to the language.</p>
+<p>The most familiar example from other languages is <code>async/await</code>. In C# or JavaScript, the compiler transforms <code>await</code> expressions into continuation-passing state machines behind the scenes. F# generalizes that idea: computation expressions give you the same power, but for any workflow you want to model — not just async code.</p>
+<p>In practice, they shine brightest in four places:</p>
+<ul>
+<li><strong><code>option</code></strong> — propagating the absence of a value through a chain of operations without a pyramid of <code>match</code> expressions</li>
+<li><strong><code>result</code></strong> — threading errors through a pipeline so that the first failure short-circuits the rest</li>
+<li><strong><code>async</code></strong> — composing asynchronous operations without explicit callbacks or <code>Async.bind</code> chains</li>
+<li><strong><code>query</code></strong> — writing LINQ-style data queries with a readable, SQL-like syntax built directly into the language</li>
+</ul>
+<p>In each case, the computation expression handles the plumbing — the “did this step succeed? okay, pass it to the next one” logic — so your code can focus on the happy path. The sections below walk through each one, showing what the code looks like before and after.</p>
+</section>
+<section id="options" class="level2">
+<h2 class="anchored" data-anchor-id="options">Options</h2>
+<p>F#’s <code>option</code> type represents a value that may or may not be present. It’s the principled alternative to <code>null</code>. A value is either <code>Some x</code> or <code>None</code>, and the type system forces you to handle both cases.</p>
+<p>There are a couple of ways to handle this without a computation expression, and both have trade-offs.</p>
+<blockquote class="blockquote">
+<p><strong>Note:</strong> The <code>option</code> computation expression is part of the F# standard library — no extra packages needed.</p>
+</blockquote>
+<div id="e84e2fc8" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb1-1">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> Imagine a small domain: users have an active subscription, subscriptions have a promo code</span></span>
+<span id="cb1-2"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">type</span> PromoCode = <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span> Code: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">string</span>; DiscountPct: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb1-3"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">type</span> Subscription = <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span> Plan: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">string</span>; PromoCode: PromoCode <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">option</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb1-4"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">type</span> User = <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span> Name: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">string</span>; Subscription: Subscription <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">option</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb1-5"></span>
+<span id="cb1-6"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span> findUser <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>id: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> : User <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">option</span> =</span>
+<span id="cb1-7">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> id = <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">then</span> Some <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span> Name = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Alice"</span>; Subscription = Some <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span> Plan = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Pro"</span>; PromoCode = Some <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span> Code = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"SAVE20"</span>; DiscountPct = <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">20</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb1-8">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">else</span> None</span>
+<span id="cb1-9"></span>
+<span id="cb1-10">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> --- Before: cascading match expressions ---</span></span>
+<span id="cb1-11">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> Each optional hop requires its own match arm. Nesting grows with the chain.</span></span>
+<span id="cb1-12"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span> getDiscountNestedMatch <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>userId: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> : <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">option</span> =</span>
+<span id="cb1-13">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">match</span> findUser userId <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">with</span></span>
+<span id="cb1-14">    | None -&gt; None</span>
+<span id="cb1-15">    | Some user -&gt;</span>
+<span id="cb1-16">        <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">match</span> user.Subscription <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">with</span></span>
+<span id="cb1-17">        | None -&gt; None</span>
+<span id="cb1-18">        | Some sub -&gt;</span>
+<span id="cb1-19">            <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">match</span> sub.PromoCode <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">with</span></span>
+<span id="cb1-20">            | None -&gt; None</span>
+<span id="cb1-21">            | Some promo -&gt; Some promo.DiscountPct</span>
+<span id="cb1-22"></span>
+<span id="cb1-23">printfn <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Nested match: %A"</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>getDiscountNestedMatch <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>   //<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> Some 20</span></span>
+<span id="cb1-24">printfn <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Nested match: %A"</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>getDiscountNestedMatch <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">99</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>  //<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> None</span></span>
+<span id="cb1-25"></span>
+<span id="cb1-26">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> --- Before: Option.bind ---</span></span>
+<span id="cb1-27">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> Option.bind f opt evaluates to: match opt with None -&gt; None | Some x -&gt; f x</span></span>
+<span id="cb1-28">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> Piping through Option.bind flattens the nesting, but the lambda noise adds up.</span></span>
+<span id="cb1-29"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span> getDiscountOptionBind <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>userId: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> : <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">option</span> =</span>
+<span id="cb1-30">    findUser userId</span>
+<span id="cb1-31">    |&gt; Option<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>bind  <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">fun</span> user  -&gt; user.Subscription<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span></span>
+<span id="cb1-32">    |&gt; Option<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>bind  <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">fun</span> sub   -&gt; sub.PromoCode<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span></span>
+<span id="cb1-33">    |&gt; Option<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>map   <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">fun</span> promo -&gt; promo.DiscountPct<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span></span>
+<span id="cb1-34"></span>
+<span id="cb1-35">printfn <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Option.bind:  %A"</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>getDiscountOptionBind <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>   //<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> Some 20</span></span>
+<span id="cb1-36">printfn <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Option.bind:  %A"</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>getDiscountOptionBind <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">99</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>  //<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> None</span></span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Nested match: Some 20
+Nested match: None
+Option.bind:  Some 20
+Option.bind:  None</code></pre>
+</div>
+</div>
+<div id="71ba9140" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb3-1">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> --- With the option computation expression ---</span></span>
+<span id="cb3-2">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> `let!` unwraps a `Some`, or short-circuits with `None` if the value is absent.</span></span>
+<span id="cb3-3">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> The happy path reads top-to-bottom with no nesting.</span></span>
+<span id="cb3-4"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span> getDiscountWithCE <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>userId: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> : <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">option</span> =</span>
+<span id="cb3-5">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">option</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb3-6">        <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span>! user  = findUser userId</span>
+<span id="cb3-7">        <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span>! sub   = user.Subscription</span>
+<span id="cb3-8">        <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span>! promo = sub.PromoCode</span>
+<span id="cb3-9">        <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> promo.DiscountPct</span>
+<span id="cb3-10">    <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb3-11"></span>
+<span id="cb3-12">printfn <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"option CE:    %A"</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>getDiscountWithCE <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>   //<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> Some 20</span></span>
+<span id="cb3-13">printfn <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"option CE:    %A"</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>getDiscountWithCE <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">99</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>  //<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> None</span></span></code></pre></div></div>
+</div>
+<p>The logic is identical across all three, but each approach makes a different trade-off. Nested <code>match</code> is maximally explicit but creates a rightward drift that gets worse with every hop. <code>Option.bind</code> flattens the structure using a pipeline, which is better — but you’re still writing a lambda for each step, and the ceremony starts to obscure what you’re actually computing. The computation expression eliminates both problems: <code>let!</code> unwraps each option and short-circuits on <code>None</code>, while the block reads straight down like ordinary sequential code.</p>
+<p>This pattern scales cleanly. Whether you’re unwrapping two optional values or ten, the structure stays flat.</p>
+</section>
+<section id="results" class="level2">
+<h2 class="anchored" data-anchor-id="results">Results</h2>
+<p>The <code>result</code> type takes the <code>option</code> idea further: instead of just signalling absence with <code>None</code>, it carries an error value when something goes wrong. A result is either <code>Ok value</code> or <code>Error err</code>, and like <code>option</code>, the type system forces you to handle both cases.</p>
+<p>Chaining fallible operations has the same structural problem as chaining optional ones — each step might fail, and you want to short-circuit on the first error. The <code>result</code> CE from <code>FsToolkit.ErrorHandling</code> handles this cleanly.</p>
+<blockquote class="blockquote">
+<p><strong>Note:</strong> Unlike <code>option</code>, the <code>result</code> CE is not in the F# standard library. It comes from <a href="https://github.com/demystifyfp/FsToolkit.ErrorHandling"><code>FsToolkit.ErrorHandling</code></a>, a widely-used community package that adds computation expression support for <code>Result</code>, <code>Async</code>, and more.</p>
+</blockquote>
+<div id="2300ab5c" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb4-1">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> A small validation pipeline: parse an order from raw input</span></span>
+<span id="cb4-2"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">type</span> OrderError = InvalidId | NegativeQuantity | UnknownProduct</span>
+<span id="cb4-3"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">type</span> Order = <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span> Id: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span>; ProductId: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span>; Quantity: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb4-4"></span>
+<span id="cb4-5"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span> parseId <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>raw: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">string</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> : Result&lt;<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span>, OrderError&gt; =</span>
+<span id="cb4-6">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">match</span> System<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>Int32<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>TryParse raw <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">with</span></span>
+<span id="cb4-7">    | <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">true</span>, n <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">when</span> n &gt; <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span> -&gt; Ok n</span>
+<span id="cb4-8">    | _ -&gt; Error InvalidId</span>
+<span id="cb4-9"></span>
+<span id="cb4-10"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span> validateQuantity <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>qty: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> : Result&lt;<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span>, OrderError&gt; =</span>
+<span id="cb4-11">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> qty &gt; <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">then</span> Ok qty <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">else</span> Error NegativeQuantity</span>
+<span id="cb4-12"></span>
+<span id="cb4-13"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span> lookupProduct <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>productId: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> : Result&lt;<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span>, OrderError&gt; =</span>
+<span id="cb4-14">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> productId = <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">42</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">then</span> Ok productId <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">else</span> Error UnknownProduct</span>
+<span id="cb4-15"></span>
+<span id="cb4-16">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> --- Before: cascading match expressions ---</span></span>
+<span id="cb4-17"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span> parseOrderNestedMatch <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>rawId: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">string</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>qty: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>productId: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> : Result&lt;Order, OrderError&gt; =</span>
+<span id="cb4-18">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">match</span> parseId rawId <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">with</span></span>
+<span id="cb4-19">    | Error e -&gt; Error e</span>
+<span id="cb4-20">    | Ok id -&gt;</span>
+<span id="cb4-21">        <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">match</span> validateQuantity qty <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">with</span></span>
+<span id="cb4-22">        | Error e -&gt; Error e</span>
+<span id="cb4-23">        | Ok validQty -&gt;</span>
+<span id="cb4-24">            <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">match</span> lookupProduct productId <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">with</span></span>
+<span id="cb4-25">            | Error e -&gt; Error e</span>
+<span id="cb4-26">            | Ok pid -&gt; Ok <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span> Id = id; ProductId = pid; Quantity = validQty <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb4-27"></span>
+<span id="cb4-28">printfn <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Nested match: %A"</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>parseOrderNestedMatch <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"7"</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">42</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>   //<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> Ok ...</span></span>
+<span id="cb4-29">printfn <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Nested match: %A"</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>parseOrderNestedMatch <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"7"</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">-1</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">42</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>  //<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> Error NegativeQuantity</span></span>
+<span id="cb4-30"></span>
+<span id="cb4-31">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> --- Before: Result.bind ---</span></span>
+<span id="cb4-32">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> Flattens the nesting but requires threading intermediate values manually.</span></span>
+<span id="cb4-33"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span> parseOrderResultBind <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>rawId: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">string</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>qty: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>productId: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> : Result&lt;Order, OrderError&gt; =</span>
+<span id="cb4-34">    parseId rawId</span>
+<span id="cb4-35">    |&gt; Result<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>bind <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">fun</span> id -&gt;</span>
+<span id="cb4-36">        validateQuantity qty</span>
+<span id="cb4-37">        |&gt; Result<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>bind <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">fun</span> validQty -&gt;</span>
+<span id="cb4-38">            lookupProduct productId</span>
+<span id="cb4-39">            |&gt; Result<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>map <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">fun</span> pid -&gt; <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span> Id = id; ProductId = pid; Quantity = validQty <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">})))</span></span>
+<span id="cb4-40"></span>
+<span id="cb4-41">printfn <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Result.bind:  %A"</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>parseOrderResultBind <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"7"</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">42</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>   //<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> Ok ...</span></span>
+<span id="cb4-42">printfn <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Result.bind:  %A"</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>parseOrderResultBind <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"abc"</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">42</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> //<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> Error InvalidId</span></span></code></pre></div></div>
+</div>
+<div id="cell-9" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb5-1"><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">#r "nuget: FsToolkit.ErrorHandling"</span></span>
+<span id="cb5-2"></span>
+<span id="cb5-3"><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">open</span> FsToolkit<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>ErrorHandling</span></code></pre></div></div>
+</div>
+<div id="cell-10" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb6-1">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> --- With the result computation expression (FsToolkit.ErrorHandling) ---</span></span>
+<span id="cb6-2">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> `let!` unwraps Ok, or short-circuits with the Error value.</span></span>
+<span id="cb6-3">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> All intermediate values stay in scope — no manual threading.</span></span>
+<span id="cb6-4"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span> parseOrderCE <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>rawId: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">string</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>qty: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>productId: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> : Result&lt;Order, OrderError&gt; =</span>
+<span id="cb6-5">    result <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb6-6">        <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span>! id       = parseId rawId</span>
+<span id="cb6-7">        <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span>! validQty = validateQuantity qty</span>
+<span id="cb6-8">        <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span>! pid      = lookupProduct productId</span>
+<span id="cb6-9">        <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span> Id = id; ProductId = pid; Quantity = validQty <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb6-10">    <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb6-11"></span>
+<span id="cb6-12">printfn <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"result CE: %A"</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>parseOrderCE <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"7"</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">42</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>    //<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> Ok { Id = 7; ProductId = 42; Quantity = 3 }</span></span>
+<span id="cb6-13">printfn <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"result CE: %A"</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>parseOrderCE <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"abc"</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">42</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>  //<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> Error InvalidId</span></span>
+<span id="cb6-14">printfn <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"result CE: %A"</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>parseOrderCE <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"7"</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">99</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>    //<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> Error UnknownProduct</span></span></code></pre></div></div>
+</div>
+<p>The <code>Result.bind</code> version avoids the rightward drift of nested matches, but notice that threading <code>id</code> and <code>validQty</code> into the final <code>Result.map</code> requires nesting the lambdas anyway — you can’t easily keep all the bound values in scope when chaining with <code>|&gt;</code>. The <code>result { }</code> CE solves both problems at once: it’s flat, and every <code>let!</code> binding is naturally in scope for the rest of the block.</p>
+</section>
+<section id="async" class="level2">
+<h2 class="anchored" data-anchor-id="async">Async</h2>
+<p>F#’s <code>async { }</code> computation expression is the built-in way to write asynchronous code. It predates C#’s <code>async/await</code> and works on the same idea: <code>let!</code> suspends the current workflow until an async operation completes, then binds the result — without blocking a thread.</p>
+<p>Without the CE, composing async operations means chaining <code>Async.bind</code> calls. Like <code>Result.bind</code>, this works for a single hop but gets unwieldy as soon as you need to carry multiple values forward.</p>
+<blockquote class="blockquote">
+<p><strong>Note:</strong> The <code>async</code> computation expression is part of the F# standard library.</p>
+</blockquote>
+<div id="cell-13" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb7-1">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> Simulated async data layer</span></span>
+<span id="cb7-2"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">type</span> User    = <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span> Id: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span>; Name: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">string</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb7-3"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">type</span> Product = <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span> Id: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span>; Name: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">string</span>; Price: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">float</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb7-4"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">type</span> Cart    = <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span> UserId: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span>; ProductIds: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span> list <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb7-5"></span>
+<span id="cb7-6"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span> fetchUser    <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>id: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>      : Async&lt;User&gt;    = async <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span> Id = id; Name = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Alice"</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb7-7"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span> fetchCart    <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>userId: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>  : Async&lt;Cart&gt;    = async <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span> UserId = userId; ProductIds = <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">[</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>; <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>; <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">]</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb7-8"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span> fetchProduct <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>productId: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>: Async&lt;Product&gt; = async <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span> Id = productId; Name = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Widget"</span>; Price = <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">9.99</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb7-9"></span>
+<span id="cb7-10">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> --- Before: Async.bind ---</span></span>
+<span id="cb7-11">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> Each hop needs its own Async.bind. Threading `user` and `cart` into</span></span>
+<span id="cb7-12">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> the final step requires nesting — the same problem as Result.bind.</span></span>
+<span id="cb7-13"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span> getCartTotalBind <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>userId: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> : Async&lt;<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">float</span>&gt; =</span>
+<span id="cb7-14">    fetchUser userId</span>
+<span id="cb7-15">    |&gt; Async<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>bind <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">fun</span> user -&gt;</span>
+<span id="cb7-16">        fetchCart user.Id</span>
+<span id="cb7-17">        |&gt; Async<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>bind <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">fun</span> cart -&gt;</span>
+<span id="cb7-18">            cart.ProductIds</span>
+<span id="cb7-19">            |&gt; List<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>map fetchProduct</span>
+<span id="cb7-20">            |&gt; Async<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>Sequential</span>
+<span id="cb7-21">            |&gt; Async<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>map <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">fun</span> products -&gt;</span>
+<span id="cb7-22">                products |&gt; Array<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>sumBy <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">fun</span> p -&gt; p.Price<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">))))</span></span>
+<span id="cb7-23"></span>
+<span id="cb7-24">getCartTotalBind <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span> |&gt; Async<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>RunSynchronously |&gt; printfn <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Async.bind: %.2f"</span></span></code></pre></div></div>
+</div>
+<div id="cell-14" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb8-1">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> --- With the async computation expression ---</span></span>
+<span id="cb8-2">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> `let!` suspends until each async completes and binds the result.</span></span>
+<span id="cb8-3">//<span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> All values stay in scope — no nesting required.</span></span>
+<span id="cb8-4"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span> getCartTotalCE <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>userId: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> : Async&lt;<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">float</span>&gt; =</span>
+<span id="cb8-5">    async <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb8-6">        <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span>! user     = fetchUser userId</span>
+<span id="cb8-7">        <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span>! cart     = fetchCart user.Id</span>
+<span id="cb8-8">        <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span>! products = cart.ProductIds |&gt; List<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>map fetchProduct |&gt; Async<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>Sequential</span>
+<span id="cb8-9">        <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> products |&gt; Array<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>sumBy <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">fun</span> p -&gt; p.Price<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span></span>
+<span id="cb8-10">    <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb8-11"></span>
+<span id="cb8-12">getCartTotalCE <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span> |&gt; Async<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>RunSynchronously |&gt; printfn <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"async CE: %.2f"</span></span></code></pre></div></div>
+</div>
+<p>The structure mirrors the <code>result</code> CE: <code>let!</code> on each async step, all bindings in scope, linear top-to-bottom flow. The <code>Async.bind</code> version forces nesting once you need to reference <code>user</code> and <code>cart</code> together in the final step — the CE keeps everything flat.</p>
+<p>One thing worth noting: F#’s <code>async { }</code> does not use the <code>Task&lt;T&gt;</code> type that C# <code>async/await</code> produces. If you’re interoperating with .NET libraries that return <code>Task</code>, you can use <code>task { }</code> instead — it’s the same CE pattern, but backed by <code>Task&lt;T&gt;</code> rather than F#’s <code>Async&lt;T&gt;</code>.</p>
+</section>
+<section id="query-expressions" class="level2">
+<h2 class="anchored" data-anchor-id="query-expressions">Query Expressions</h2>
+<p>Computation expressions aren’t limited to error handling. F# also has a built-in <code>query { }</code> CE that brings LINQ-style querying directly into the language — no extension methods, no lambda-heavy syntax.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb9-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span> highValueOrders =</span>
+<span id="cb9-2">    query <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb9-3">        <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> order <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> orders <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">do</span></span>
+<span id="cb9-4">        where <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>order.Total &gt; <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100.0</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span></span>
+<span id="cb9-5">        sortByDescending order.Total</span>
+<span id="cb9-6">        select order</span>
+<span id="cb9-7">    <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+<p>This is not special syntax baked into the compiler — <code>query</code> is just another computation expression builder, defined in the standard library. <code>for</code>, <code>where</code>, <code>sortByDescending</code>, and <code>select</code> are all methods on the builder that the compiler desugars into <code>IQueryable</code>-compatible calls. The same mechanism that powers <code>option { }</code> and <code>result { }</code> powers SQL-translatable database queries.</p>
+<p>That’s the deeper point: computation expressions are a general-purpose abstraction. Once you understand the pattern — a builder type with <code>Bind</code>, <code>Return</code>, and friends — you can read (and write) any CE in the ecosystem, whether it’s for async workflows, error handling, query composition, or something domain-specific you’ve built yourself.</p>
+
+
+</section>
+
+ ]]></description>
+  <guid>https://everybodykurts.github.io/posts/computation-expressions/</guid>
+  <pubDate>Sun, 05 Apr 2026 22:27:30 GMT</pubDate>
+</item>
 </channel>
 </rss>
