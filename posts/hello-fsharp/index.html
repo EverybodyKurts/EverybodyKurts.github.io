@@ -26,6 +26,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -168,7 +203,8 @@ ul.task-list li input[type="checkbox"] {
 <h2 class="anchored" data-anchor-id="welcome">Welcome</h2>
 <p>This is a sample blog post written as a Jupyter notebook using the F# kernel. Let’s start with a simple example.</p>
 <div id="4e2f2762" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}" data-execution_count="2">
-<p><code>{.f# .cell-code} let greeting = "Hello from F#!" printfn "%s" greeting</code></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> greeting = <span class="st">"Hello from F#!"</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>printfn <span class="st">"%s"</span> greeting</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Hello from F#!</code></pre>
 </div>
@@ -176,15 +212,24 @@ ul.task-list li input[type="checkbox"] {
 <p>F# is a functional-first language that runs on .NET. It’s great for data exploration, scripting, and building robust applications.</p>
 <p>Here’s a quick example of pattern matching:</p>
 <div id="af4581b3" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}" data-execution_count="4">
-<p>``` {.f# .cell-code} type Shape = | Circle of radius: float | Rectangle of width: float * height: float</p>
-<p>let area shape = match shape with | Circle radius -&gt; System.Math.PI * radius * radius | Rectangle (width, height) -&gt; width * height</p>
-<p>let shapes = [ Circle 5.0; Rectangle (3.0, 4.0) ]</p>
-<p>shapes |&gt; List.iter (fun s -&gt; printfn “%A has area %.2f” s (area s))</p>
-<pre><code>
-::: {.cell-output .cell-output-stdout}</code></pre>
-<p>Circle 5.0 has area 78.54 Rectangle (3.0, 4.0) has area 12.00 ```</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Shape =</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    | Circle <span class="kw">of</span> radius: <span class="dt">float</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    | Rectangle <span class="kw">of</span> width: <span class="dt">float</span> * height: <span class="dt">float</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> area shape =</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">match</span> shape <span class="kw">with</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    | Circle radius -&gt; System<span class="kw">.</span>Math<span class="kw">.</span>PI * radius * radius</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    | Rectangle <span class="op">(</span>width, height<span class="op">)</span> -&gt; width * height</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> shapes = <span class="op">[</span> Circle <span class="fl">5.0</span>; Rectangle <span class="op">(</span><span class="fl">3.0</span>, <span class="fl">4.0</span><span class="op">)</span> <span class="op">]</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>shapes</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>|&gt; List<span class="kw">.</span>iter <span class="op">(</span><span class="kw">fun</span> s -&gt; printfn <span class="st">"%A has area %.2f"</span> s <span class="op">(</span>area s<span class="op">))</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Circle 5.0 has area 78.54
+Rectangle (3.0, 4.0) has area 12.00</code></pre>
 </div>
-<p>:::</p>
+</div>
 
 
 </section>

@@ -24,7 +24,15 @@
 <h2 class="anchored" data-anchor-id="welcome">Welcome</h2>
 <p>This is a sample blog post written as a Jupyter notebook using the F# kernel. Let’s start with a simple example.</p>
 <div id="4e2f2762" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}" data-execution_count="2">
-<p><code>{.f# .cell-code} let greeting = "Hello from F#!" printfn "%s" greeting</code></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb1-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span> greeting = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Hello from F#!"</span></span>
+<span id="cb1-2">printfn <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"%s"</span> greeting</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Hello from F#!</code></pre>
 </div>
@@ -32,15 +40,89 @@
 <p>F# is a functional-first language that runs on .NET. It’s great for data exploration, scripting, and building robust applications.</p>
 <p>Here’s a quick example of pattern matching:</p>
 <div id="af4581b3" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;dotnet_interactive&quot;,&quot;value&quot;:{&quot;language&quot;:&quot;fsharp&quot;}}" data-execution_count="4">
-<p>``` {.f# .cell-code} type Shape = | Circle of radius: float | Rectangle of width: float * height: float</p>
-<p>let area shape = match shape with | Circle radius -&gt; System.Math.PI * radius * radius | Rectangle (width, height) -&gt; width * height</p>
-<p>let shapes = [ Circle 5.0; Rectangle (3.0, 4.0) ]</p>
-<p>shapes |&gt; List.iter (fun s -&gt; printfn “%A has area %.2f” s (area s))</p>
-<pre><code>
-::: {.cell-output .cell-output-stdout}</code></pre>
-<p>Circle 5.0 has area 78.54 Rectangle (3.0, 4.0) has area 12.00 ```</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode fsharp code-with-copy"><code class="sourceCode fsharp"><span id="cb3-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">type</span> Shape =</span>
+<span id="cb3-2">    | Circle <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">of</span> radius: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">float</span></span>
+<span id="cb3-3">    | Rectangle <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">of</span> width: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">float</span> * height: <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">float</span></span>
+<span id="cb3-4"></span>
+<span id="cb3-5"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span> area shape =</span>
+<span id="cb3-6">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">match</span> shape <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">with</span></span>
+<span id="cb3-7">    | Circle radius -&gt; System<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>Math<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>PI * radius * radius</span>
+<span id="cb3-8">    | Rectangle <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>width, height<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> -&gt; width * height</span>
+<span id="cb3-9"></span>
+<span id="cb3-10"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span> shapes = <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">[</span> Circle <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5.0</span>; Rectangle <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3.0</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4.0</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">]</span></span>
+<span id="cb3-11"></span>
+<span id="cb3-12">shapes</span>
+<span id="cb3-13">|&gt; List<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">.</span>iter <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">fun</span> s -&gt; printfn <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"%A has area %.2f"</span> s <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>area s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">))</span></span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Circle 5.0 has area 78.54
+Rectangle (3.0, 4.0) has area 12.00</code></pre>
 </div>
-<p>:::</p>
+</div>
 
 
 </section>
