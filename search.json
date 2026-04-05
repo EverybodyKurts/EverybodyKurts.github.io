@@ -2,9 +2,16 @@
   {
     "objectID": "posts/hello-fsharp/index.html",
     "href": "posts/hello-fsharp/index.html",
-    "title": "Welcome",
+    "title": "Hello, F# World",
     "section": "",
-    "text": "``` {.f# .cell-code}\n\n\n\n\ntitle: “Hello, F# World”\n\n\ndescription: “My first blog post using F# and Jupyter notebooks”\n\n\nauthor: “Kurt Mueller”\n\n\ndate: “2026-03-29”\n\n\ncategories:\n\n\n- fsharp\n\n\n- getting-started\n\n\n\n\n::: {.cell-output .cell-output-error}\nError: input.fsx (2,1)-(2,6) parse error Invalid prefix operator input.fsx (2,6)-(2,7) parse error Unexpected symbol ‘:’ in interaction. Expected ‘;’, ‘;;’ or other token. input.fsx (2,6)-(2,7) interactive error parse error input.fsx (2,1)-(2,6) parse error Invalid prefix operator\ninput.fsx (2,6)-(2,7) parse error Unexpected symbol ‘:’ in interaction. Expected ‘;’, ‘;;’ or other token.\ninput.fsx (2,6)-(2,7) interactive error parse error\n:::\n:::\n\n\n\nThis is a sample blog post written as a Jupyter notebook using the F# kernel.\nLet's start with a simple example.\n\n\n::: {#4e2f2762 .cell quarto-private-1='{\"key\":\"dotnet_interactive\",\"value\":{\"language\":\"fsharp\"}}' execution_count=2}\n``` {.f# .cell-code}\nlet greeting = \"Hello from F#!\"\nprintfn \"%s\" greeting\n\nHello from F#!\n\n\nF# is a functional-first language that runs on .NET. It’s great for data exploration, scripting, and building robust applications.\nHere’s a quick example of pattern matching:\n\n``` {.f# .cell-code} type Shape = | Circle of radius: float | Rectangle of width: float * height: float\nlet area shape = match shape with | Circle radius -&gt; System.Math.PI * radius * radius | Rectangle (width, height) -&gt; width * height\nlet shapes = [ Circle 5.0; Rectangle (3.0, 4.0) ]\nshapes |&gt; List.iter (fun s -&gt; printfn “%A has area %.2f” s (area s))\n\n::: {.cell-output .cell-output-stdout}\nCircle 5.0 has area 78.54 Rectangle (3.0, 4.0) has area 12.00 ```\n\n:::"
+    "text": "This is a sample blog post written as a Jupyter notebook using the F# kernel. Let’s start with a simple example.\n\n{.f# .cell-code} let greeting = \"Hello from F#!\" printfn \"%s\" greeting\n\nHello from F#!\n\n\nF# is a functional-first language that runs on .NET. It’s great for data exploration, scripting, and building robust applications.\nHere’s a quick example of pattern matching:\n\n``` {.f# .cell-code} type Shape = | Circle of radius: float | Rectangle of width: float * height: float\nlet area shape = match shape with | Circle radius -&gt; System.Math.PI * radius * radius | Rectangle (width, height) -&gt; width * height\nlet shapes = [ Circle 5.0; Rectangle (3.0, 4.0) ]\nshapes |&gt; List.iter (fun s -&gt; printfn “%A has area %.2f” s (area s))\n\n::: {.cell-output .cell-output-stdout}\nCircle 5.0 has area 78.54 Rectangle (3.0, 4.0) has area 12.00 ```\n\n:::"
+  },
+  {
+    "objectID": "posts/hello-fsharp/index.html#welcome",
+    "href": "posts/hello-fsharp/index.html#welcome",
+    "title": "Hello, F# World",
+    "section": "",
+    "text": "This is a sample blog post written as a Jupyter notebook using the F# kernel. Let’s start with a simple example.\n\n{.f# .cell-code} let greeting = \"Hello from F#!\" printfn \"%s\" greeting\n\nHello from F#!\n\n\nF# is a functional-first language that runs on .NET. It’s great for data exploration, scripting, and building robust applications.\nHere’s a quick example of pattern matching:\n\n``` {.f# .cell-code} type Shape = | Circle of radius: float | Rectangle of width: float * height: float\nlet area shape = match shape with | Circle radius -&gt; System.Math.PI * radius * radius | Rectangle (width, height) -&gt; width * height\nlet shapes = [ Circle 5.0; Rectangle (3.0, 4.0) ]\nshapes |&gt; List.iter (fun s -&gt; printfn “%A has area %.2f” s (area s))\n\n::: {.cell-output .cell-output-stdout}\nCircle 5.0 has area 78.54 Rectangle (3.0, 4.0) has area 12.00 ```\n\n:::"
   },
   {
     "objectID": "agent-os/product/roadmap.html",
@@ -228,6 +235,6 @@
     "href": "index.html",
     "title": "Kurt Mueller",
     "section": "",
-    "text": "Welcome\n\n\n\n\n\n\n\n\n\n\n\nNo matching items"
+    "text": "Hello, F# World\n\n\n\nfsharp\n\ngetting-started\n\n\n\nMy first blog post using F# and Jupyter notebooks\n\n\n\n\n\nMar 29, 2026\n\n\nKurt Mueller\n\n\n\n\n\nNo matching items"
   }
 ]
